@@ -32,17 +32,20 @@ An intelligent Chrome extension that processes selected text using multiple AI p
 
 ## 🚀 Installation
 
+### Manual Installation (Private Repository)
+1. **Clone** this repository:
+   ```bash
+   git clone https://github.com/raushanmaurya75/text-learner-chrome-extension.git
+   ```
+2. Open Chrome and go to `chrome://extensions/`
+3. Enable **Developer mode** (top right)
+4. Click **Load unpacked**
+5. Select the cloned extension folder
+
 ### From Chrome Web Store (Coming Soon)
 1. Visit Chrome Web Store
 2. Search for "Text Learner"
 3. Click "Add to Chrome"
-
-### Manual Installation
-1. **Download** this repository
-2. Open Chrome and go to `chrome://extensions/`
-3. Enable **Developer mode** (top right)
-4. Click **Load unpacked**
-5. Select the extension folder
 
 ## 📖 Usage
 
@@ -118,11 +121,15 @@ text-learner-chrome-extension/
 
 ## 🤝 Contributing
 
-1. Fork this repository
+**Private Repository - Collaborators Only**
+
+1. Request access to the private repository
 2. Create feature branch (`git checkout -b feature/amazing-feature`)
 3. Commit changes (`git commit -m 'Add amazing feature'`)
 4. Push to branch (`git push origin feature/amazing-feature`)
 5. Open Pull Request
+
+*Note: This is a private repository. Contact the maintainer for collaborator access.*
 
 ## 📝 License
 
@@ -130,9 +137,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🔗 Links
 
-- **Chrome Extension**: [Text Learner](https://github.com/raushanmaurya75/text-learner-chrome-extension)
+- **Private Repository**: [Text Learner](https://github.com/raushanmaurya75/text-learner-chrome-extension) *(Access Required)*
 - **Developer**: [Raushan Maurya](https://www.linkedin.com/in/raushan-maurya1/)
-- **Issues**: [GitHub Issues](https://github.com/raushanmaurya75/text-learner-chrome-extension/issues)
+- **Issues**: [GitHub Issues](https://github.com/raushanmaurya75/text-learner-chrome-extension/issues) *(Collaborators Only)*
 
 ## 🙏 Acknowledgments
 
