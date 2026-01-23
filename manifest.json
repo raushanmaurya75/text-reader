@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "Text Learner",
+  "version": "1.0",
+  "description": "Learn from selected text with multiple AI providers and customizable hotkeys",
+  "permissions": ["storage", "clipboardWrite", "activeTab"],
+  "host_permissions": [
+    "https://api.openai.com/*",
+    "https://generativelanguage.googleapis.com/*",
+    "https://api.groq.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "options_page": "options.html",
+  "action": {
+    "default_title": "Text Learner",
+    "default_popup": "options.html"
+  },
+  "icons": {
+    "16": "assets/logo (2).png",
+    "48": "assets/logo (2).png",
+    "128": "assets/logo (2).png"
+  }
+}

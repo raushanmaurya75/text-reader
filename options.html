@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Text Learner Settings</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      
+      body {
+        font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+        margin: 0;
+        padding: 8px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        color: #333;
+      }
+      
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        overflow: hidden;
+      }
+      
+      .header {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        color: white;
+        padding: 20px;
+        text-align: center;
+      }
+      
+      .header h1 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 700;
+      }
+      
+      .header p {
+        margin: 4px 0 0 0;
+        opacity: 0.9;
+        font-size: 14px;
+      }
+      
+      .content {
+        padding: 16px;
+      }
+      
+      .section {
+        margin-bottom: 16px;
+        padding: 16px;
+        background: #f8fafc;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+      }
+      
+      .section-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0 0 16px 0;
+        color: #1e293b;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      
+      .section-description {
+        color: #64748b;
+        font-size: 14px;
+        margin-bottom: 20px;
+        line-height: 1.5;
+      }
+      
+      .form-group {
+        margin-bottom: 20px;
+      }
+      
+      label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #374151;
+        font-size: 14px;
+      }
+      
+      input, select, textarea {
+        width: 100%;
+        padding: 12px 16px;
+        font-size: 14px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        transition: all 0.2s;
+        background: white;
+      }
+      
+      input:focus, select:focus, textarea:focus {
+        outline: none;
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+      }
+      
+      textarea {
+        resize: vertical;
+        min-height: 100px;
+        font-family: inherit;
+      }
+      
+      .provider-section {
+        display: none;
+        padding: 16px;
+        background: white;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+        margin-top: 12px;
+      }
+      
+      .provider-section.active {
+        display: block;
+      }
+      
+      .hotkey-container {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      
+      .hotkey-input {
+        width: 80px;
+        text-align: center;
+      }
+      
+      .hotkey-plus {
+        font-weight: 600;
+        color: #6b7280;
+      }
+      
+      .button-group {
+        display: flex;
+        gap: 12px;
+        margin-top: 24px;
+      }
+      
+      button {
+        padding: 12px 24px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        border-radius: 8px;
+        transition: all 0.2s;
+      }
+      
+      .btn-primary {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        color: white;
+      }
+      
+      .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 16px rgba(79, 70, 229, 0.3);
+      }
+      
+      .btn-secondary {
+        background: #f3f4f6;
+        color: #374151;
+      }
+      
+      .btn-secondary:hover {
+        background: #e5e7eb;
+      }
+      
+      .status {
+        margin-top: 16px;
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+      }
+      
+      .status.success {
+        background: #dcfce7;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+      }
+      
+      .status.error {
+        background: #fef2f2;
+        color: #dc2626;
+        border: 1px solid #fecaca;
+      }
+      
+      .model-info {
+        font-size: 12px;
+        color: #6b7280;
+        margin-top: 4px;
+      }
+      
+      .icon {
+        width: 20px;
+        height: 20px;
+        display: inline-block;
+      }
+      
+      .social-link {
+        margin-top: 20px;
+        text-align: center;
+      }
+      
+      .social-link a {
+        color: white;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 13px;
+        padding: 10px 20px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+      }
+      
+      .social-link a:hover {
+        background: rgba(255, 255, 255, 0.15);
+        border-color: rgba(255, 255, 255, 0.3);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      }
+      
+      .social-link a:active {
+        transform: translateY(0);
+      }
+      
+      .linkedin-icon {
+        width: 16px;
+        height: 16px;
+        background: #0077b5;
+        border-radius: 3px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 10px;
+        color: white;
+      }
+      
+      .highlight {
+        color: #ffffff;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🧠 Text Learner</h1>
+        <p>Configure your AI-powered text learning extension</p>
+        <div class="social-link">
+          <a href="https://www.linkedin.com/in/raushan-maurya1/" target="_blank" rel="noopener noreferrer">
+            <div class="linkedin-icon">in</div>
+            <span class="highlight">Follow on LinkedIn</span>
+          </a>
+        </div>
+      </div>
+      
+      <div class="content">
+        <!-- AI Provider Configuration -->
+        <div class="section">
+          <h2 class="section-title">
+            <span class="icon">🔧</span>
+            AI Provider Configuration
+          </h2>
+          <p class="section-description">Choose your preferred AI provider and configure the API settings</p>
+          
+          <div class="form-group">
+            <label for="provider">AI Provider</label>
+            <select id="provider">
+              <option value="groq">Groq (Fast & Free)</option>
+              <option value="gemini">Google Gemini</option>
+              <option value="openai">OpenAI</option>
+            </select>
+          </div>
+          
+          <!-- Groq Configuration -->
+          <div id="groq-config" class="provider-section active">
+            <div class="form-group">
+              <label for="groqApiKey">Groq API Key</label>
+              <input id="groqApiKey" type="password" placeholder="gsk_..." />
+              <div class="model-info">Get your free API key from <a href="https://console.groq.com" target="_blank">console.groq.com</a></div>
+            </div>
+            
+            <div class="form-group">
+              <label for="groqModel">Model</label>
+              <select id="groqModel">
+                <option value="llama-3.1-8b-instant">Llama 3.1 8B Instant (Fast)</option>
+                <option value="llama-3.3-70b-versatile">Llama 3.3 70B Versatile</option>
+                <option value="mixtral-8x7b-32768">Mixtral 8x7B</option>
+              </select>
+            </div>
+          </div>
+          
+          <!-- Gemini Configuration -->
+          <div id="gemini-config" class="provider-section">
+            <div class="form-group">
+              <label for="geminiApiKey">Gemini API Key</label>
+              <input id="geminiApiKey" type="password" placeholder="AIza..." />
+              <div class="model-info">Get your API key from <a href="https://aistudio.google.com" target="_blank">AI Studio</a></div>
+            </div>
+            
+            <div class="form-group">
+              <label for="geminiModel">Model</label>
+              <select id="geminiModel">
+                <option value="gemini-1.5-flash">Gemini 1.5 Flash (Fast)</option>
+                <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                <option value="gemini-1.0-pro">Gemini 1.0 Pro</option>
+              </select>
+            </div>
+          </div>
+          
+          <!-- OpenAI Configuration -->
+          <div id="openai-config" class="provider-section">
+            <div class="form-group">
+              <label for="openaiApiKey">OpenAI API Key</label>
+              <input id="openaiApiKey" type="password" placeholder="sk-..." />
+              <div class="model-info">Get your API key from <a href="https://platform.openai.com" target="_blank">platform.openai.com</a></div>
+            </div>
+            
+            <div class="form-group">
+              <label for="openaiModel">Model</label>
+              <select id="openaiModel">
+                <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                <option value="gpt-4">GPT-4</option>
+                <option value="gpt-4-turbo">GPT-4 Turbo</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Custom Instructions -->
+        <div class="section">
+          <h2 class="section-title">
+            <span class="icon">📝</span>
+            Custom Instructions
+          </h2>
+          <p class="section-description">Define how the AI should process your text. Leave empty for default behavior.</p>
+          
+          <div class="form-group">
+            <label for="customInstruction">AI Instructions</label>
+            <textarea id="customInstruction" placeholder="Example: Rewrite the text to be more professional and concise. Fix any grammar errors and improve clarity."></textarea>
+            <div class="model-info">These instructions will be sent to the AI along with your selected text.</div>
+          </div>
+        </div>
+        
+        
+        <!-- Hotkey Configuration -->
+        <div class="section">
+          <h2 class="section-title">
+            <span class="icon">⌨️</span>
+            Hotkey Configuration
+          </h2>
+          <p class="section-description">Customize the keyboard shortcut to trigger AI processing</p>
+          
+          <div class="form-group">
+            <label>Hotkey Type</label>
+            <select id="hotkeyType">
+              <option value="combination">Combination (Modifier + Key)</option>
+              <option value="single">Single Key</option>
+            </select>
+          </div>
+          
+          <div class="form-group" id="combinationHotkey">
+            <label>Hotkey Combination</label>
+            <div class="hotkey-container">
+              <select id="modifierKey" class="hotkey-input">
+                <option value="alt">Alt</option>
+                <option value="ctrl">Ctrl</option>
+                <option value="shift">Shift</option>
+                <option value="meta">Meta/Cmd</option>
+              </select>
+              <span class="hotkey-plus">+</span>
+              <select id="actionKey" class="hotkey-input">
+                <option value="Enter">Enter</option>
+                <option value=" ">Space</option>
+                <option value="a">A</option>
+                <option value="s">S</option>
+                <option value="d">D</option>
+                <option value="f">F</option>
+                <option value="x">X</option>
+                <option value="z">Z</option>
+              </select>
+            </div>
+            <div class="model-info">Current: <span id="currentHotkey">Alt + Enter</span></div>
+          </div>
+          
+          <div class="form-group" id="singleHotkey" style="display: none;">
+            <label>Single Key</label>
+            <select id="singleKey" class="hotkey-input">
+              <option value="Enter">Enter</option>
+              <option value=" ">Space</option>
+              <option value="a">A</option>
+              <option value="s">S</option>
+              <option value="d">D</option>
+              <option value="f">F</option>
+              <option value="x">X</option>
+              <option value="z">Z</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+            </select>
+            <div class="model-info">Current: <span id="currentSingleHotkey">Enter</span></div>
+          </div>
+        </div>
+        
+        <!-- MCQ Feature -->
+        <div class="section">
+          <h2 class="section-title">
+            <span class="icon">📝</span>
+            MCQ Question Feature
+          </h2>
+          <p class="section-description">Enable automatic MCQ answer selection for questions with options</p>
+          
+          <div class="form-group">
+            <label for="mcqEnabled">
+              <input type="checkbox" id="mcqEnabled" />
+              Enable MCQ Answer Selection
+            </label>
+            <div class="model-info">When enabled, AI will analyze MCQ questions and automatically select the correct answer option.</div>
+          </div>
+          
+          <div class="form-group">
+            <label for="mcqInstruction">MCQ Instructions</label>
+            <textarea id="mcqInstruction" placeholder="Example: Respond with ONLY the correct answer letter (A, B, C, D). No explanation, no extra text, just the letter."></textarea>
+            <div class="model-info">Custom instructions for MCQ analysis. Leave empty for default behavior.</div>
+          </div>
+          
+          <div class="form-group">
+            <label for="mcqHotkeyType">MCQ Selection Hotkey Type</label>
+            <select id="mcqHotkeyType">
+              <option value="combination">Combination (Modifier + Key)</option>
+              <option value="single">Single Key</option>
+            </select>
+          </div>
+          
+          <div class="form-group" id="mcqCombinationHotkey">
+            <label>MCQ Selection Hotkey Combination</label>
+            <div class="hotkey-container">
+              <select id="mcqModifierKey" class="hotkey-input">
+                <option value="alt">Alt</option>
+                <option value="ctrl">Ctrl</option>
+                <option value="shift">Shift</option>
+                <option value="meta">Meta/Cmd</option>
+              </select>
+              <span class="hotkey-plus">+</span>
+              <select id="mcqActionKey" class="hotkey-input">
+                <option value="m">M</option>
+                <option value="q">Q</option>
+                <option value="r">R</option>
+                <option value="Enter">Enter</option>
+                <option value=" ">Space</option>
+              </select>
+            </div>
+            <div class="model-info">Current: <span id="currentMcqHotkey">Alt + M</span></div>
+          </div>
+          
+          <div class="form-group" id="mcqSingleHotkey" style="display: none;">
+            <label>MCQ Selection Single Key</label>
+            <select id="mcqSingleKey" class="hotkey-input">
+              <option value="m">M</option>
+              <option value="q">Q</option>
+              <option value="r">R</option>
+              <option value="Enter">Enter</option>
+              <option value=" ">Space</option>
+            </select>
+            <div class="model-info">Current: <span id="currentMcqSingleHotkey">M</span></div>
+          </div>
+        </div>
+        
+        <!-- Save Buttons -->
+        <div class="button-group">
+          <button id="saveButton" class="btn-primary">💾 Save Settings</button>
+          <button id="resetButton" class="btn-secondary">🔄 Reset to Defaults</button>
+        </div>
+        
+        <div id="status" class="status" style="display: none;"></div>
+      </div>
+    </div>
+
+    <script src="options.js"></script>
+  </body>
+</html>
