@@ -38,6 +38,21 @@ const mcqSingleHotkey = document.getElementById("mcqSingleHotkey");
 const currentMcqHotkeySpan = document.getElementById("currentMcqHotkey");
 const currentMcqSingleHotkeySpan = document.getElementById("currentMcqSingleHotkey");
 
+// Question solving mode elements
+const questionSolvingEnabled = document.getElementById("questionSolvingEnabled");
+const questionSolvingHotkeyType = document.getElementById("questionSolvingHotkeyType");
+const questionSolvingModifierKey = document.getElementById("questionSolvingModifierKey");
+const questionSolvingActionKey = document.getElementById("questionSolvingActionKey");
+const questionSolvingSingleKey = document.getElementById("questionSolvingSingleKey");
+const questionSolvingCombinationHotkey = document.getElementById("questionSolvingCombinationHotkey");
+const questionSolvingSingleHotkey = document.getElementById("questionSolvingSingleHotkey");
+const currentQuestionSolvingHotkeySpan = document.getElementById("currentQuestionSolvingHotkey");
+const currentQuestionSolvingSingleHotkeySpan = document.getElementById("currentQuestionSolvingSingleHotkey");
+
+// Auto-solve delay and sensitivity elements
+const autoSolveDelay = document.getElementById("autoSolveDelay");
+const questionDetectionSensitivity = document.getElementById("questionDetectionSensitivity");
+
 // Default settings
 const defaultSettings = {
   provider: "groq",
@@ -47,206 +62,215 @@ const defaultSettings = {
   geminiModel: "gemini-1.5-flash",
   openaiApiKey: "",
   openaiModel: "gpt-3.5-turbo",
-  customInstruction: "",
+  customInstruction: "Rewrite the following text to be more concise and clear:",
   hotkeyType: "combination",
   modifierKey: "alt",
   actionKey: "Enter",
   singleKey: "Enter",
   mcqEnabled: false,
-  mcqInstruction: "",
+  mcqInstruction: "If lettered options (A, B, C, D), respond with ONLY the letter. If numbered options, respond with the number. If true/false, respond with 'true' or 'false'. If fill-in-the-blank, provide the word/phrase. No explanation.",
   mcqHotkeyType: "combination",
   mcqModifierKey: "alt",
   mcqActionKey: "m",
-  mcqSingleKey: "m"
-};
-
-// Show/hide provider configuration
-const switchProvider = (provider) => {
-  document.querySelectorAll(".provider-section").forEach(section => {
-    section.classList.remove("active");
-  });
-  
-  const configMap = {
-    "groq": groqConfig,
-    "gemini": geminiConfig,
-    "openai": openaiConfig
-  };
-  
-  if (configMap[provider]) {
-    configMap[provider].classList.add("active");
-  }
-};
-
-// Update current hotkey display
-const updateHotkeyDisplay = () => {
-  const type = hotkeyType.value;
-  if (type === "combination") {
-    const modifier = modifierKey.value.charAt(0).toUpperCase() + modifierKey.value.slice(1);
-    const action = actionKey.value === " " ? "Space" : actionKey.value.charAt(0).toUpperCase() + actionKey.value.slice(1);
-    currentHotkeySpan.textContent = `${modifier} + ${action}`;
-  } else {
-    const key = singleKey.value === " " ? "Space" : singleKey.value.charAt(0).toUpperCase() + singleKey.value.slice(1);
-    currentSingleHotkeySpan.textContent = key;
-  }
-};
-
-// Update MCQ hotkey display
-const updateMcqHotkeyDisplay = () => {
-  const type = mcqHotkeyType.value;
-  if (type === "combination") {
-    const modifier = mcqModifierKey.value.charAt(0).toUpperCase() + mcqModifierKey.value.slice(1);
-    const action = mcqActionKey.value === " " ? "Space" : mcqActionKey.value.charAt(0).toUpperCase() + mcqActionKey.value.slice(1);
-    currentMcqHotkeySpan.textContent = `${modifier} + ${action}`;
-  } else {
-    const key = mcqSingleKey.value === " " ? "Space" : mcqSingleKey.value.charAt(0).toUpperCase() + mcqSingleKey.value.slice(1);
-    currentMcqSingleHotkeySpan.textContent = key;
-  }
-};
-
-// Show/hide hotkey configuration based on type
-const switchHotkeyType = (type) => {
-  if (type === "combination") {
-    combinationHotkey.style.display = "block";
-    singleHotkey.style.display = "none";
-  } else {
-    combinationHotkey.style.display = "none";
-    singleHotkey.style.display = "block";
-  }
-};
-
-// Show/hide MCQ hotkey configuration based on type
-const switchMcqHotkeyType = (type) => {
-  if (type === "combination") {
-    mcqCombinationHotkey.style.display = "block";
-    mcqSingleHotkey.style.display = "none";
-  } else {
-    mcqCombinationHotkey.style.display = "none";
-    mcqSingleHotkey.style.display = "block";
-  }
+  mcqSingleKey: "m",
+  questionSolvingEnabled: false,
+  questionSolvingHotkeyType: "combination",
+  questionSolvingModifierKey: "alt",
+  questionSolvingActionKey: "s",
+  questionSolvingSingleKey: "s",
+  autoSolveDelay: 0,
+  questionDetectionSensitivity: "medium"
 };
 
 // Load settings from storage
-const loadSettings = () => {
-  chrome.storage.local.get(Object.keys(defaultSettings), (result) => {
+const loadSettings = async () => {
+  try {
+    const result = await chrome.storage.local.get(Object.keys(defaultSettings));
+    const settings = { ...defaultSettings, ...result };
+    
     // Set provider
-    const provider = result.provider || defaultSettings.provider;
-    providerSelect.value = provider;
-    switchProvider(provider);
+    providerSelect.value = settings.provider;
     
     // Set API keys and models
-    groqApiKey.value = result.groqApiKey || "";
-    groqModel.value = result.groqModel || defaultSettings.groqModel;
-    geminiApiKey.value = result.geminiApiKey || "";
-    geminiModel.value = result.geminiModel || defaultSettings.geminiModel;
-    openaiApiKey.value = result.openaiApiKey || "";
-    openaiModel.value = result.openaiModel || defaultSettings.openaiModel;
+    groqApiKey.value = settings.groqApiKey || "";
+    groqModel.value = settings.groqModel || defaultSettings.groqModel;
+    geminiApiKey.value = settings.geminiApiKey || "";
+    geminiModel.value = settings.geminiModel || defaultSettings.geminiModel;
+    openaiApiKey.value = settings.openaiApiKey || "";
+    openaiModel.value = settings.openaiModel || defaultSettings.openaiModel;
     
-    // Set other settings
-    customInstruction.value = result.customInstruction || "";
-    hotkeyType.value = result.hotkeyType || defaultSettings.hotkeyType;
-    modifierKey.value = result.modifierKey || defaultSettings.modifierKey;
-    actionKey.value = result.actionKey || defaultSettings.actionKey;
-    singleKey.value = result.singleKey || defaultSettings.singleKey;
+    // Set custom instruction
+    customInstruction.value = settings.customInstruction || defaultSettings.customInstruction;
+    
+    // Set hotkey settings
+    hotkeyType.value = settings.hotkeyType || defaultSettings.hotkeyType;
+    modifierKey.value = settings.modifierKey || defaultSettings.modifierKey;
+    actionKey.value = settings.actionKey || defaultSettings.actionKey;
+    singleKey.value = settings.singleKey || defaultSettings.singleKey;
     
     // Set MCQ settings
-    mcqEnabled.checked = result.mcqEnabled || false;
-    mcqInstruction.value = result.mcqInstruction || "";
-    mcqHotkeyType.value = result.mcqHotkeyType || defaultSettings.mcqHotkeyType;
-    mcqModifierKey.value = result.mcqModifierKey || defaultSettings.mcqModifierKey;
-    mcqActionKey.value = result.mcqActionKey || defaultSettings.mcqActionKey;
-    mcqSingleKey.value = result.mcqSingleKey || defaultSettings.mcqSingleKey;
+    mcqEnabled.checked = settings.mcqEnabled || false;
+    mcqInstruction.value = settings.mcqInstruction || defaultSettings.mcqInstruction;
+    mcqHotkeyType.value = settings.mcqHotkeyType || defaultSettings.mcqHotkeyType;
+    mcqModifierKey.value = settings.mcqModifierKey || defaultSettings.mcqModifierKey;
+    mcqActionKey.value = settings.mcqActionKey || defaultSettings.mcqActionKey;
+    mcqSingleKey.value = settings.mcqSingleKey || defaultSettings.mcqSingleKey;
     
-    switchHotkeyType(hotkeyType.value);
-    switchMcqHotkeyType(mcqHotkeyType.value);
-    updateHotkeyDisplay();
-    updateMcqHotkeyDisplay();
-  });
+    // Set question solving mode settings
+    questionSolvingEnabled.checked = settings.questionSolvingEnabled || false;
+    questionSolvingHotkeyType.value = settings.questionSolvingHotkeyType || defaultSettings.questionSolvingHotkeyType;
+    questionSolvingModifierKey.value = settings.questionSolvingModifierKey || defaultSettings.questionSolvingModifierKey;
+    questionSolvingActionKey.value = settings.questionSolvingActionKey || defaultSettings.questionSolvingActionKey;
+    questionSolvingSingleKey.value = settings.questionSolvingSingleKey || defaultSettings.questionSolvingSingleKey;
+    
+    // Set auto-solve delay and sensitivity
+    autoSolveDelay.value = settings.autoSolveDelay || defaultSettings.autoSolveDelay;
+    questionDetectionSensitivity.value = settings.questionDetectionSensitivity || defaultSettings.questionDetectionSensitivity;
+    
+    // Update UI
+    updateProviderConfig();
+    updateHotkeyUI();
+    updateMcqHotkeyUI();
+    updateQuestionSolvingHotkeyUI();
+    updateCurrentHotkeyDisplay();
+  } catch (error) {
+    showStatus("Error loading settings", "error");
+  }
 };
 
 // Save settings to storage
-const saveSettings = () => {
-  const settings = {
-    provider: providerSelect.value,
-    groqApiKey: groqApiKey.value.trim(),
-    groqModel: groqModel.value,
-    geminiApiKey: geminiApiKey.value.trim(),
-    geminiModel: geminiModel.value,
-    openaiApiKey: openaiApiKey.value.trim(),
-    openaiModel: openaiModel.value,
-    customInstruction: customInstruction.value.trim(),
-    hotkeyType: hotkeyType.value,
-    modifierKey: modifierKey.value,
-    actionKey: actionKey.value,
-    singleKey: singleKey.value,
-    mcqEnabled: mcqEnabled.checked,
-    mcqInstruction: mcqInstruction.value.trim(),
-    mcqHotkeyType: mcqHotkeyType.value,
-    mcqModifierKey: mcqModifierKey.value,
-    mcqActionKey: mcqActionKey.value,
-    mcqSingleKey: mcqSingleKey.value
-  };
-  
-  // Validate API key for selected provider
-  const selectedProvider = settings.provider;
-  const apiKey = settings[`${selectedProvider}ApiKey`];
-  
-  if (!apiKey) {
-    showStatus(`Please enter a valid ${selectedProvider.toUpperCase()} API key.`, "error");
-    return;
-  }
-  
-  chrome.storage.local.set(settings, () => {
+const saveSettings = async () => {
+  try {
+    const settings = {
+      provider: providerSelect.value,
+      groqApiKey: groqApiKey.value.trim(),
+      groqModel: groqModel.value,
+      geminiApiKey: geminiApiKey.value.trim(),
+      geminiModel: geminiModel.value,
+      openaiApiKey: openaiApiKey.value.trim(),
+      openaiModel: openaiModel.value,
+      customInstruction: customInstruction.value.trim(),
+      hotkeyType: hotkeyType.value,
+      modifierKey: modifierKey.value,
+      actionKey: actionKey.value,
+      singleKey: singleKey.value,
+      mcqEnabled: mcqEnabled.checked,
+      mcqInstruction: mcqInstruction.value.trim(),
+      mcqHotkeyType: mcqHotkeyType.value,
+      mcqModifierKey: mcqModifierKey.value,
+      mcqActionKey: mcqActionKey.value,
+      mcqSingleKey: mcqSingleKey.value,
+      questionSolvingEnabled: questionSolvingEnabled.checked,
+      questionSolvingHotkeyType: questionSolvingHotkeyType.value,
+      questionSolvingModifierKey: questionSolvingModifierKey.value,
+      questionSolvingActionKey: questionSolvingActionKey.value,
+      questionSolvingSingleKey: questionSolvingSingleKey.value,
+      autoSolveDelay: parseInt(autoSolveDelay.value) || 0,
+      questionDetectionSensitivity: questionDetectionSensitivity.value
+    };
+    
+    await chrome.storage.local.set(settings);
     showStatus("Settings saved successfully!", "success");
-    updateHotkeyDisplay();
-  });
+    updateCurrentHotkeyDisplay();
+  } catch (error) {
+    showStatus("Error saving settings", "error");
+  }
 };
 
-// Reset to defaults
-const resetSettings = () => {
-  if (confirm("Are you sure you want to reset all settings to defaults?")) {
-    chrome.storage.local.set(defaultSettings, () => {
-      loadSettings();
-      showStatus("Settings reset to defaults.", "success");
-    });
+// Reset settings to defaults
+const resetSettings = async () => {
+  try {
+    await chrome.storage.local.set(defaultSettings);
+    await loadSettings();
+    showStatus("Settings reset to defaults", "success");
+  } catch (error) {
+    showStatus("Error resetting settings", "error");
   }
 };
 
 // Show status message
 const showStatus = (message, type) => {
   status.textContent = message;
-  status.className = `status ${type}`;
-  status.style.display = "block";
-  
+  status.className = type;
   setTimeout(() => {
-    status.style.display = "none";
+    status.textContent = "";
+    status.className = "";
   }, 3000);
 };
 
+// Update provider configuration visibility
+const updateProviderConfig = () => {
+  const provider = providerSelect.value;
+  groqConfig.style.display = provider === "groq" ? "block" : "none";
+  geminiConfig.style.display = provider === "gemini" ? "block" : "none";
+  openaiConfig.style.display = provider === "openai" ? "block" : "none";
+};
+
+// Update hotkey UI based on type
+const updateHotkeyUI = () => {
+  const isCombination = hotkeyType.value === "combination";
+  combinationHotkey.style.display = isCombination ? "block" : "none";
+  singleHotkey.style.display = isCombination ? "none" : "block";
+};
+
+// Update MCQ hotkey UI based on type
+const updateMcqHotkeyUI = () => {
+  const isCombination = mcqHotkeyType.value === "combination";
+  mcqCombinationHotkey.style.display = isCombination ? "block" : "none";
+  mcqSingleHotkey.style.display = isCombination ? "none" : "block";
+};
+
+// Update question solving hotkey UI based on type
+const updateQuestionSolvingHotkeyUI = () => {
+  const isCombination = questionSolvingHotkeyType.value === "combination";
+  questionSolvingCombinationHotkey.style.display = isCombination ? "block" : "none";
+  questionSolvingSingleHotkey.style.display = isCombination ? "none" : "block";
+};
+
+// Update current hotkey display
+const updateCurrentHotkeyDisplay = () => {
+  // Regular hotkey
+  const hotkeyDesc = hotkeyType.value === "single" 
+    ? singleKey.value 
+    : `${modifierKey.value}+${actionKey.value}`;
+  currentHotkeySpan.textContent = hotkeyDesc;
+  currentSingleHotkeySpan.textContent = singleKey.value;
+  
+  // MCQ hotkey
+  const mcqHotkeyDesc = mcqHotkeyType.value === "single" 
+    ? mcqSingleKey.value 
+    : `${mcqModifierKey.value}+${mcqActionKey.value}`;
+  currentMcqHotkeySpan.textContent = mcqHotkeyDesc;
+  currentMcqSingleHotkeySpan.textContent = mcqSingleKey.value;
+  
+  // Question solving hotkey
+  const questionSolvingHotkeyDesc = questionSolvingHotkeyType.value === "single" 
+    ? questionSolvingSingleKey.value 
+    : `${questionSolvingModifierKey.value}+${questionSolvingActionKey.value}`;
+  currentQuestionSolvingHotkeySpan.textContent = questionSolvingHotkeyDesc;
+  currentQuestionSolvingSingleHotkeySpan.textContent = questionSolvingSingleKey.value;
+};
+
 // Event listeners
-providerSelect.addEventListener("change", (e) => {
-  switchProvider(e.target.value);
-});
-
-hotkeyType.addEventListener("change", (e) => {
-  switchHotkeyType(e.target.value);
-  updateHotkeyDisplay();
-});
-
-mcqHotkeyType.addEventListener("change", (e) => {
-  switchMcqHotkeyType(e.target.value);
-  updateMcqHotkeyDisplay();
-});
-
-modifierKey.addEventListener("change", updateHotkeyDisplay);
-actionKey.addEventListener("change", updateHotkeyDisplay);
-singleKey.addEventListener("change", updateHotkeyDisplay);
-
-mcqModifierKey.addEventListener("change", updateMcqHotkeyDisplay);
-mcqActionKey.addEventListener("change", updateMcqHotkeyDisplay);
-mcqSingleKey.addEventListener("change", updateMcqHotkeyDisplay);
-
+providerSelect.addEventListener("change", updateProviderConfig);
+hotkeyType.addEventListener("change", updateHotkeyUI);
+mcqHotkeyType.addEventListener("change", updateMcqHotkeyUI);
+questionSolvingHotkeyType.addEventListener("change", updateQuestionSolvingHotkeyUI);
 saveButton.addEventListener("click", saveSettings);
 resetButton.addEventListener("click", resetSettings);
 
-// Initialize
-loadSettings();
+// Update hotkey display when keys change
+[modifierKey, actionKey, singleKey].forEach(element => {
+  element.addEventListener("change", updateCurrentHotkeyDisplay);
+});
+
+[mcqModifierKey, mcqActionKey, mcqSingleKey].forEach(element => {
+  element.addEventListener("change", updateCurrentHotkeyDisplay);
+});
+
+[questionSolvingModifierKey, questionSolvingActionKey, questionSolvingSingleKey].forEach(element => {
+  element.addEventListener("change", updateCurrentHotkeyDisplay);
+});
+
+// Initialize on page load
+document.addEventListener("DOMContentLoaded", loadSettings);

@@ -4,7 +4,8 @@
     new Promise((resolve) => {
       chrome.storage.local.get([
         "hotkeyType", "modifierKey", "actionKey", "singleKey",
-        "mcqEnabled", "mcqHotkeyType", "mcqModifierKey", "mcqActionKey", "mcqSingleKey"
+        "mcqEnabled", "mcqHotkeyType", "mcqModifierKey", "mcqActionKey", "mcqSingleKey",
+        "questionSolvingEnabled", "questionSolvingHotkeyType", "questionSolvingModifierKey", "questionSolvingActionKey", "questionSolvingSingleKey", "autoSolveDelay", "questionDetectionSensitivity"
       ], (result) => {
         resolve({
           hotkeyType: result.hotkeyType || "combination",
@@ -15,20 +16,27 @@
           mcqHotkeyType: result.mcqHotkeyType || "combination",
           mcqModifierKey: result.mcqModifierKey || "alt",
           mcqActionKey: result.mcqActionKey || "m",
-          mcqSingleKey: result.mcqSingleKey || "m"
+          mcqSingleKey: result.mcqSingleKey || "m",
+          questionSolvingEnabled: result.questionSolvingEnabled || false,
+          questionSolvingHotkeyType: result.questionSolvingHotkeyType || "combination",
+          questionSolvingModifierKey: result.questionSolvingModifierKey || "alt",
+          questionSolvingActionKey: result.questionSolvingActionKey || "s",
+          questionSolvingSingleKey: result.questionSolvingSingleKey || "s",
+          autoSolveDelay: result.autoSolveDelay || 0,
+          questionDetectionSensitivity: result.questionDetectionSensitivity || "medium"
         });
       });
     });
 
   let settings = { 
     hotkeyType: "combination", modifierKey: "alt", actionKey: "Enter", singleKey: "Enter",
-    mcqEnabled: false, mcqHotkeyType: "combination", mcqModifierKey: "alt", mcqActionKey: "m", mcqSingleKey: "m"
+    mcqEnabled: false, mcqHotkeyType: "combination", mcqModifierKey: "alt", mcqActionKey: "m", mcqSingleKey: "m",
+    questionSolvingEnabled: false, questionSolvingHotkeyType: "combination", questionSolvingModifierKey: "alt", questionSolvingActionKey: "s", questionSolvingSingleKey: "s", autoSolveDelay: 0, questionDetectionSensitivity: "medium"
   };
 
   // Load settings
   const loadSettings = async () => {
     settings = await getSettings();
-    console.log("[Content] Settings loaded:", settings);
   };
 
   // Check if the pressed keys match the regular hotkey
@@ -36,91 +44,71 @@
     const { hotkeyType, modifierKey, actionKey, singleKey } = settings;
     
     if (hotkeyType === "single") {
-      // Single key mode - just check if the key matches
       return event.key === singleKey;
     } else {
-      // Combination mode - check modifier + action key
       let modifierPressed = false;
       switch (modifierKey) {
-        case "alt":
-          modifierPressed = event.altKey;
-          break;
-        case "ctrl":
-          modifierPressed = event.ctrlKey;
-          break;
-        case "shift":
-          modifierPressed = event.shiftKey;
-          break;
-        case "meta":
-          modifierPressed = event.metaKey;
-          break;
+        case "alt": modifierPressed = event.altKey; break;
+        case "ctrl": modifierPressed = event.ctrlKey; break;
+        case "shift": modifierPressed = event.shiftKey; break;
+        case "meta": modifierPressed = event.metaKey; break;
       }
-      
-      // Check action key
       const actionPressed = event.key === actionKey;
-      
       return modifierPressed && actionPressed;
     }
   };
 
   // Check if the pressed keys match the MCQ hotkey
   const isMcqHotkeyPressed = (event) => {
-    if (!settings.mcqEnabled) {
-      console.log("[Content] MCQ not enabled, returning false");
-      return false;
-    }
+    if (!settings.mcqEnabled) return false;
     
     const { mcqHotkeyType, mcqModifierKey, mcqActionKey, mcqSingleKey } = settings;
-    console.log(`[Content] MCQ settings - Type: ${mcqHotkeyType}, Modifier: ${mcqModifierKey}, Action: ${mcqActionKey}, Single: ${mcqSingleKey}`);
     
     if (mcqHotkeyType === "single") {
-      // Single key mode - just check if the key matches
-      const matches = event.key === mcqSingleKey;
-      console.log(`[Content] Single key mode: event.key=${event.key}, mcqSingleKey=${mcqSingleKey}, matches=${matches}`);
-      return matches;
+      return event.key === mcqSingleKey;
     } else {
-      // Combination mode - check modifier + action key
       let modifierPressed = false;
       switch (mcqModifierKey) {
-        case "alt":
-          modifierPressed = event.altKey;
-          break;
-        case "ctrl":
-          modifierPressed = event.ctrlKey;
-          break;
-        case "shift":
-          modifierPressed = event.shiftKey;
-          break;
-        case "meta":
-          modifierPressed = event.metaKey;
-          break;
+        case "alt": modifierPressed = event.altKey; break;
+        case "ctrl": modifierPressed = event.ctrlKey; break;
+        case "shift": modifierPressed = event.shiftKey; break;
+        case "meta": modifierPressed = event.metaKey; break;
       }
-      
-      // Check action key
       const actionPressed = event.key === mcqActionKey;
-      const matches = modifierPressed && actionPressed;
-      
-      console.log(`[Content] Combination mode: modifier=${modifierPressed}, action=${actionPressed}, matches=${matches}`);
-      return matches;
+      return modifierPressed && actionPressed;
+    }
+  };
+
+  // Check if the pressed keys match the question solving hotkey
+  const isQuestionSolvingHotkeyPressed = (event) => {
+    if (!settings.questionSolvingEnabled) return false;
+    
+    const { questionSolvingHotkeyType, questionSolvingModifierKey, questionSolvingActionKey, questionSolvingSingleKey } = settings;
+    
+    if (questionSolvingHotkeyType === "single") {
+      return event.key === questionSolvingSingleKey;
+    } else {
+      let modifierPressed = false;
+      switch (questionSolvingModifierKey) {
+        case "alt": modifierPressed = event.altKey; break;
+        case "ctrl": modifierPressed = event.ctrlKey; break;
+        case "shift": modifierPressed = event.shiftKey; break;
+        case "meta": modifierPressed = event.metaKey; break;
+      }
+      const actionPressed = event.key === questionSolvingActionKey;
+      return modifierPressed && actionPressed;
     }
   };
 
   const getSelectedText = () => {
     const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) {
-      return "";
-    }
+    if (!selection || selection.rangeCount === 0) return "";
     
-    // Get only the actual selected range, not the entire page
     const range = selection.getRangeAt(0);
     let selectedText = range.toString();
-    
-    // Preserve formatting by default - just trim outer whitespace
     selectedText = selectedText.trim();
     
-    // Limit to reasonable length to avoid sending entire pages
     if (selectedText.length > 5000) {
-      console.warn("[Content] Selection too long, truncating to 5000 characters");
       return selectedText.substring(0, 5000);
     }
     
@@ -132,62 +120,91 @@
     if (!response) return null;
     
     const cleanResponse = response.trim();
-    console.log("[Content] Extracting answer from:", cleanResponse);
     
-    // First, check if it's just a single letter (most common case)
+    if (cleanResponse.length < 2) {
+      return null;
+    }
+    
+    // Single letter
     const singleLetter = cleanResponse.match(/^([A-Z])$/);
     if (singleLetter) {
-      console.log("[Content] Found single letter answer:", singleLetter[1]);
       return singleLetter[1];
     }
     
-    // Check for single letter at the start (ignoring any prefix)
-    const letterAtStart = cleanResponse.match(/^.*?([A-Z])/);
+    // Letter with punctuation at start
+    const letterAtStart = cleanResponse.match(/^([a-zA-Z])[\.\)\s]/);
     if (letterAtStart) {
-      console.log("[Content] Found letter at start:", letterAtStart[1]);
-      return letterAtStart[1];
+      return letterAtStart[1].toUpperCase();
     }
     
-    // Look for patterns like "A)", "B.", "C:", "Option D", etc.
+    // First letter
+    const letterAtVeryStart = cleanResponse.match(/^([a-zA-Z])/);
+    if (letterAtVeryStart) {
+      return letterAtVeryStart[1].toUpperCase();
+    }
+    
+    // Patterns
     const patterns = [
-      /([A-Z])\s*[).]/g,           // A) or A. or A:
-      /Option\s*([A-Z])/gi,        // Option A
-      /Answer\s*([A-Z])/gi,        // Answer A
-      /Correct\s*([A-Z])/gi,       // Correct A
-      /([A-Z])\s*is\s*correct/gi,  // A is correct
-      /\b([A-Z])\b/g               // Any standalone letter
+      /^([a-zA-Z])[\.\)\s]/,
+      /\b([a-zA-Z])[\.\)\s]/,
+      /Option\s+([a-zA-Z])/gi,
+      /Answer\s+([a-zA-Z])/gi,
+      /\b([a-zA-Z])\b/g
     ];
     
     for (const pattern of patterns) {
       const matches = cleanResponse.match(pattern);
       if (matches && matches.length > 0) {
-        // Extract the letter from the first match
-        const letter = matches[0].match(/[A-Z]/);
+        const letter = matches[1] || matches[0].match(/[a-zA-Z]/);
         if (letter) {
-          console.log("[Content] Found letter via pattern:", letter[0]);
           return letter[0].toUpperCase();
         }
       }
     }
     
-    console.warn("[Content] Could not extract answer from response:", cleanResponse);
+    // Checkbox-style answers
+    const checkboxPatterns = [
+      /(\d+(?:st|nd|rd|th))/gi,
+      /(\d+)/g,
+      /(first|second|third|fourth|fifth)/gi
+    ];
+    
+    for (const pattern of checkboxPatterns) {
+      const matches = cleanResponse.match(pattern);
+      if (matches && matches.length > 0) {
+        return matches[0].toLowerCase();
+      }
+    }
+    
+    // True/false
+    const tfPatterns = [/\b(true|false|yes|no|correct|incorrect)\b/gi];
+    for (const pattern of tfPatterns) {
+      const matches = cleanResponse.match(pattern);
+      if (matches && matches.length > 0) {
+        return matches[0].toLowerCase();
+      }
+    }
+    
     return null;
   };
 
   // Find and click the MCQ option
-  const selectMcqOption = (answerLetter) => {
-    if (!answerLetter) {
-      console.warn("[Content] Could not extract answer option from AI response");
-      return false;
+  const selectMcqOption = async (answerLetter) => {
+    if (!answerLetter) return false;
+    
+    const isCheckboxStyle = !/^[A-Z]$/i.test(answerLetter);
+    
+    if (isCheckboxStyle) {
+      return await selectCheckboxOption(answerLetter);
     }
     
-    console.log(`[Content] Looking for option ${answerLetter} to select`);
-    
-    // First, try to find any input elements (radio/checkbox) that might be related
+    return selectLetterOption(answerLetter);
+  };
+
+  // Handle letter-based options (A, B, C, D)
+  const selectLetterOption = (answerLetter) => {
     const allInputs = document.querySelectorAll('input[type="radio"], input[type="checkbox"]');
-    console.log(`[Content] Found ${allInputs.length} input elements`);
     
-    // Try different selectors to find MCQ options
     const selectors = [
       `input[type="radio"][value*="${answerLetter}"]`,
       `input[type="checkbox"][value*="${answerLetter}"]`,
@@ -202,25 +219,18 @@
       try {
         const element = document.querySelector(selector);
         if (element) {
-          // Check if element is visible and clickable
           const rect = element.getBoundingClientRect();
           if (rect.width > 0 && rect.height > 0) {
             element.click();
-            console.log(`[Content] Successfully clicked option ${answerLetter} via selector: ${selector}`);
             return true;
-          } else {
-            console.log(`[Content] Element found but not visible: ${selector}`);
           }
         }
       } catch (err) {
-        console.log(`[Content] Selector ${selector} failed:`, err);
+        // Continue trying
       }
     }
     
-    // Try to find labels containing the answer letter
     const labels = document.querySelectorAll('label');
-    console.log(`[Content] Found ${labels.length} label elements`);
-    
     for (const label of labels) {
       const labelText = label.textContent.trim();
       if (labelText.startsWith(answerLetter + ')') || 
@@ -229,25 +239,18 @@
           labelText.includes('Option ' + answerLetter) ||
           labelText.match(new RegExp(`^${answerLetter}[).\\s]`, 'i'))) {
         try {
-          // Check if label is visible
           const rect = label.getBoundingClientRect();
           if (rect.width > 0 && rect.height > 0) {
             label.click();
-            console.log(`[Content] Successfully clicked label containing option ${answerLetter}: ${labelText.substring(0, 50)}...`);
             return true;
-          } else {
-            console.log(`[Content] Label found but not visible: ${labelText.substring(0, 50)}...`);
           }
         } catch (err) {
-          console.log(`[Content] Failed to click label:`, err);
+          // Continue trying
         }
       }
     }
     
-    // Try to find any clickable element with the answer letter
     const clickableElements = document.querySelectorAll('button, div[onclick], span[onclick], [role="button"], [role="option"]');
-    console.log(`[Content] Found ${clickableElements.length} clickable elements`);
-    
     for (const element of clickableElements) {
       const text = element.textContent.trim();
       if (text === answerLetter || text === answerLetter + ')' || text === answerLetter + '.' || text.startsWith(answerLetter + ' ')) {
@@ -255,26 +258,23 @@
           const rect = element.getBoundingClientRect();
           if (rect.width > 0 && rect.height > 0) {
             element.click();
-            console.log(`[Content] Successfully clicked clickable element with text: ${text}`);
             return true;
           }
         } catch (err) {
-          console.log(`[Content] Failed to click clickable element:`, err);
+          // Continue trying
         }
       }
     }
     
-    // Last resort: try any element with the answer letter
     const allElements = document.querySelectorAll('*');
     for (const element of allElements) {
-      if (element.children.length === 0) { // Only leaf nodes
+      if (element.children.length === 0) {
         const text = element.textContent.trim();
         if (text === answerLetter || text === answerLetter + ')' || text === answerLetter + '.') {
           try {
             const rect = element.getBoundingClientRect();
             if (rect.width > 0 && rect.height > 0) {
               element.click();
-              console.log(`[Content] Successfully clicked element with text: ${text}`);
               return true;
             }
           } catch (err) {
@@ -284,191 +284,362 @@
       }
     }
     
-    console.warn(`[Content] Could not find option ${answerLetter} to click`);
+    return false;
+  };
+
+  // Handle checkbox-style options
+  const selectCheckboxOption = async (answerValue) => {
+    // Fill-in-the-blank
+    if (answerValue.length >= 2 && !answerValue.match(/^\d+$/) && 
+        !answerValue.match(/first|second|third|fourth|fifth/) && 
+        !answerValue.match(/true|false|yes|no/)) {
+      return false;
+    }
+    
+    // Numeric answers
+    let targetPosition = null;
+    if (answerValue.match(/^\d+$/)) {
+      targetPosition = parseInt(answerValue) - 1;
+    } else if (answerValue.match(/\d+(?:st|nd|rd|th)/)) {
+      const match = answerValue.match(/\d+/);
+      targetPosition = parseInt(match[0]) - 1;
+    } else if (answerValue.match(/first|second|third|fourth|fifth/)) {
+      const positionMap = { 'first': 0, 'second': 1, 'third': 2, 'fourth': 3, 'fifth': 4 };
+      targetPosition = positionMap[answerValue.toLowerCase()];
+    }
+    
+    const checkboxes = document.querySelectorAll('input[type="checkbox"], input[type="radio"]');
+    
+    if (targetPosition !== null && targetPosition >= 0 && targetPosition < checkboxes.length) {
+      const targetCheckbox = checkboxes[targetPosition];
+      try {
+        const rect = targetCheckbox.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          targetCheckbox.click();
+          return true;
+        }
+      } catch (err) {
+        // Continue trying
+      }
+    }
+    
     return false;
   };
 
   const handleRegularText = async (event, selectedText) => {
-    const hotkeyDesc = settings.hotkeyType === "single" ? settings.singleKey : `${settings.modifierKey}+${settings.actionKey}`;
-    console.log(`[Content] ${hotkeyDesc} detected with text:`, selectedText);
     event.preventDefault();
 
     try {
-      console.log("[Content] Sending message to background...");
-      
       if (!chrome.runtime || !chrome.runtime.sendMessage) {
-        console.warn("[Content] Extension context not available - please reload the extension");
-        return;
-      }
-      
-      try {
-        chrome.runtime.id;
-      } catch (contextErr) {
-        console.warn("[Content] Extension context invalidated - please reload the extension");
         return;
       }
       
       chrome.runtime.sendMessage(
-        {
-          type: "PROCESS_SELECTED_TEXT",
-          payload: { text: selectedText }
-        },
+        { type: "PROCESS_SELECTED_TEXT", payload: { text: selectedText } },
         async (response) => {
           if (chrome.runtime.lastError) {
-            if (chrome.runtime.lastError.message.includes("Extension context invalidated")) {
-              console.warn("[Content] Extension context invalidated - please reload the extension");
-              return;
-            }
-            console.error("AI response error:", chrome.runtime.lastError.message);
             return;
           }
           
-          console.log("[Content] Received response:", response);
-          try {
-            if (!response || !response.success) {
-              console.error("AI response error:", response?.error || "Unknown error");
-              return;
-            }
+          if (!response || !response.success) {
+            return;
+          }
 
-            console.log("[Content] Attempting to copy to clipboard:", response.data);
-            
+          try {
+            await navigator.clipboard.writeText(response.data);
+          } catch (clipboardErr) {
+            // Fallback method
             try {
-              await navigator.clipboard.writeText(response.data);
-              console.info("[Content] AI response copied to clipboard using navigator.clipboard.");
-            } catch (clipboardErr) {
-              console.warn("[Content] navigator.clipboard failed, trying fallback:", clipboardErr);
-              
-              try {
-                const textArea = document.createElement("textarea");
-                textArea.value = response.data;
-                textArea.style.position = "fixed";
-                textArea.style.opacity = "0";
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand("copy");
-                document.body.removeChild(textArea);
-                console.info("[Content] AI response copied to clipboard using fallback method.");
-              } catch (fallbackErr) {
-                console.error("[Content] Both clipboard methods failed:", fallbackErr);
-                throw fallbackErr;
-              }
+              const textArea = document.createElement("textarea");
+              textArea.value = response.data;
+              textArea.style.position = "fixed";
+              textArea.style.opacity = "0";
+              document.body.appendChild(textArea);
+              textArea.select();
+              document.execCommand("copy");
+              document.body.removeChild(textArea);
+            } catch (fallbackErr) {
+              // Silent failure
             }
-          } catch (err) {
-            console.error("Handler error:", err);
           }
         }
       );
     } catch (err) {
-      if (err.message && err.message.includes("Extension context invalidated")) {
-        console.warn("[Content] Extension context invalidated - please reload the extension");
-        return;
-      } else {
-        console.error("[Content] Unexpected error:", err);
-      }
+      // Silent error handling
     }
   };
 
   const handleMcqText = async (event, selectedText) => {
-    const mcqHotkeyDesc = settings.mcqHotkeyType === "single" ? settings.mcqSingleKey : `${settings.mcqModifierKey}+${settings.mcqActionKey}`;
-    console.log(`[Content] MCQ ${mcqHotkeyDesc} detected with text:`, selectedText);
     event.preventDefault();
 
     try {
-      console.log("[Content] Sending MCQ message to background...");
-      
       if (!chrome.runtime || !chrome.runtime.sendMessage) {
-        console.warn("[Content] Extension context not available - please reload the extension");
-        return;
-      }
-      
-      try {
-        chrome.runtime.id;
-      } catch (contextErr) {
-        console.warn("[Content] Extension context invalidated - please reload the extension");
         return;
       }
       
       chrome.runtime.sendMessage(
-        {
-          type: "PROCESS_MCQ_TEXT",
-          payload: { text: selectedText }
-        },
+        { type: "PROCESS_MCQ_TEXT", payload: { text: selectedText } },
         async (response) => {
           if (chrome.runtime.lastError) {
-            if (chrome.runtime.lastError.message.includes("Extension context invalidated")) {
-              console.warn("[Content] Extension context invalidated - please reload the extension");
-              return;
-            }
-            console.error("MCQ AI response error:", chrome.runtime.lastError.message);
             return;
           }
           
-          console.log("[Content] Received MCQ response:", response);
-          try {
-            if (!response || !response.success) {
-              console.error("MCQ AI response error:", response?.error || "Unknown error");
-              return;
-            }
-
-            console.log("[Content] MCQ AI response:", response.data);
-            
-            // Wait a moment for any dynamic content to load
-            await new Promise(resolve => setTimeout(resolve, 100));
-            
-            // Extract answer option and click it
-            const answerLetter = extractAnswerOption(response.data);
-            if (answerLetter) {
-              console.log(`[Content] Extracted answer: ${answerLetter}, attempting to select...`);
-              
-              // Try multiple times with delays for dynamic content
-              let success = false;
-              for (let attempt = 0; attempt < 3; attempt++) {
-                success = selectMcqOption(answerLetter);
-                if (success) {
-                  console.info(`[Content] Successfully selected option ${answerLetter} on attempt ${attempt + 1}`);
-                  break;
-                }
-                
-                // Wait before retry
-                if (attempt < 2) {
-                  await new Promise(resolve => setTimeout(resolve, 200));
-                  console.log(`[Content] Retrying option selection (attempt ${attempt + 2})`);
-                }
-              }
-              
-              if (!success) {
-                console.warn(`[Content] Failed to select option ${answerLetter} after 3 attempts, copying to clipboard instead`);
+          if (!response || !response.success) {
+            return;
+          }
+          
+          const answerLetter = extractAnswerOption(response.data);
+          if (answerLetter) {
+            const success = await selectMcqOption(answerLetter);
+            if (!success) {
+              try {
                 await navigator.clipboard.writeText(response.data);
+              } catch (clipboardErr) {
+                // Silent failure
               }
-            } else {
-              console.warn("[Content] Could not extract answer option, copying to clipboard");
-              await navigator.clipboard.writeText(response.data);
             }
-          } catch (err) {
-            console.error("MCQ Handler error:", err);
+          } else {
+            try {
+              await navigator.clipboard.writeText(response.data);
+            } catch (clipboardErr) {
+              // Silent failure
+            }
           }
         }
       );
     } catch (err) {
-      if (err.message && err.message.includes("Extension context invalidated")) {
-        console.warn("[Content] Extension context invalidated - please reload the extension");
-        return;
-      } else {
-        console.error("[Content] Unexpected MCQ error:", err);
+      // Silent error handling
+    }
+  };
+
+  // Question detection
+  const detectMcqQuestions = () => {
+    const questions = [];
+    const sensitivity = settings.questionDetectionSensitivity;
+    
+    let patterns = [];
+    if (sensitivity === "high") {
+      patterns = [
+        /\b(what|which|who|when|where|why|how|select|choose|identify|determine)\b.*\?/gi,
+        /\([A-D]\)/g, /\b[A-D]\)\s*/g, /\b[A-D]\.\s*/g,
+        /\[\s*\]\s*/g, /\(\s*\)/g,
+        /\b(true|false|yes|no|correct|incorrect)\b/gi
+      ];
+    } else if (sensitivity === "medium") {
+      patterns = [
+        /\b(what|which|who|when|where|why|how)\b.*\?/gi,
+        /\([A-D]\)/g, /\b[A-D]\)\s*/g, /\b[A-D]\.\s*/g,
+        /\[\s*\]\s*/g
+      ];
+    } else {
+      patterns = [/\b(what|which)\b.*\?/gi, /\([A-D]\)/g];
+    }
+    
+    const allElements = document.querySelectorAll('*');
+    const questionElements = new Set();
+    
+    for (const element of allElements) {
+      if (element.tagName === 'SCRIPT' || element.tagName === 'STYLE' || 
+          element.offsetParent === null || element.hidden) {
+        continue;
       }
+      
+      const text = element.textContent.trim();
+      if (text.length > 15 && text.length < 2000) {
+        let isQuestion = false;
+        
+        for (const pattern of patterns) {
+          if (pattern.test(text)) {
+            isQuestion = true;
+            break;
+          }
+        }
+        
+        if (!isQuestion && sensitivity !== "low") {
+          const hasQuestionMark = text.includes('?');
+          const hasOptions = text.match(/[A-D]\)/g) || text.match(/\[\s*\]/g);
+          
+          if (hasQuestionMark && hasOptions) {
+            isQuestion = true;
+          }
+          
+          const checkboxes = element.querySelectorAll('input[type="checkbox"], input[type="radio"]');
+          if (checkboxes.length >= 2 && hasQuestionMark) {
+            isQuestion = true;
+          }
+          
+          if (hasQuestionMark && text.match(/\b(true|false|yes|no)\b/gi)) {
+            isQuestion = true;
+          }
+        }
+        
+        if (isQuestion) {
+          const rect = element.getBoundingClientRect();
+          if (rect.width > 0 && rect.height > 0) {
+            questionElements.add(element);
+          }
+        }
+      }
+    }
+    
+    questionElements.forEach(element => {
+      const rect = element.getBoundingClientRect();
+      questions.push({
+        element: element,
+        text: element.textContent.trim(),
+        rect: rect,
+        score: calculateQuestionScore(element.textContent.trim())
+      });
+    });
+    
+    questions.sort((a, b) => b.score - a.score);
+    
+    return questions;
+  };
+
+  const calculateQuestionScore = (text) => {
+    let score = 0;
+    
+    if (text.includes('?')) score += 10;
+    
+    const questionWords = ['what', 'which', 'who', 'when', 'where', 'why', 'how', 'select', 'choose', 'identify', 'determine'];
+    questionWords.forEach(word => {
+      if (text.toLowerCase().includes(word)) score += 5;
+    });
+    
+    const optionPatterns = [/\([A-D]\)/g, /\b[A-D]\)\s*/g, /\b[A-D]\.\s*/g, /\b[A-D]\s+/g];
+    optionPatterns.forEach(pattern => {
+      const matches = text.match(pattern);
+      if (matches) score += matches.length * 3;
+    });
+    
+    const checkboxPatterns = [/\[\s*\]/g, /\(\s*\)/g, /☐/g, /◯/g];
+    checkboxPatterns.forEach(pattern => {
+      const matches = text.match(pattern);
+      if (matches) score += matches.length * 2;
+    });
+    
+    if (text.length < 30) score -= 5;
+    if (text.length > 1000) score -= 5;
+    
+    const optionCount = (text.match(/[A-D]/g) || []).length;
+    if (optionCount >= 2) score += optionCount * 2;
+    
+    const checkboxCount = (text.match(/\[\s*\]/g) || []).length + (text.match(/\(\s*\)/g) || []).length;
+    if (checkboxCount >= 2) score += checkboxCount * 2;
+    
+    return Math.max(0, score);
+  };
+
+  const findBestQuestion = () => {
+    const questions = detectMcqQuestions();
+    if (questions.length === 0) {
+      return null;
+    }
+    
+    const viewportCenter = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+    let bestQuestion = null;
+    let bestScore = -1;
+    
+    for (const question of questions) {
+      const questionCenter = {
+        x: question.rect.left + question.rect.width / 2,
+        y: question.rect.top + question.rect.height / 2
+      };
+      
+      const distance = Math.sqrt(
+        Math.pow(questionCenter.x - viewportCenter.x, 2) +
+        Math.pow(questionCenter.y - viewportCenter.y, 2)
+      );
+      
+      const proximityBonus = Math.max(0, 100 - distance / 10);
+      const combinedScore = question.score + proximityBonus;
+      
+      if (combinedScore > bestScore) {
+        bestScore = combinedScore;
+        bestQuestion = question;
+      }
+    }
+    
+    return bestQuestion;
+  };
+
+  const solveQuestion = async (question) => {
+    if (!chrome.runtime || !chrome.runtime.sendMessage) {
+      throw new Error('Extension context not available');
+    }
+    
+    if (settings.autoSolveDelay > 0) {
+      await new Promise(resolve => setTimeout(resolve, settings.autoSolveDelay * 1000));
+    }
+    
+    return new Promise((resolve, reject) => {
+      chrome.runtime.sendMessage(
+        { type: "PROCESS_MCQ_TEXT", payload: { text: question.text } },
+        async (response) => {
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+            return;
+          }
+          
+          if (!response || !response.success) {
+            reject(new Error(response?.error || "Unknown error"));
+            return;
+          }
+          
+          const answerLetter = extractAnswerOption(response.data);
+          if (answerLetter) {
+            const success = await selectMcqOption(answerLetter);
+            if (success) {
+              resolve(answerLetter);
+            } else {
+              try {
+                await navigator.clipboard.writeText(response.data);
+                resolve(answerLetter);
+              } catch (clipboardError) {
+                reject(new Error('Failed to select option and copy to clipboard'));
+              }
+            }
+          } else {
+            try {
+              await navigator.clipboard.writeText(response.data);
+              resolve(response.data);
+            } catch (clipboardError) {
+              reject(new Error('Could not extract answer and failed to copy to clipboard'));
+            }
+          }
+        }
+      );
+    });
+  };
+
+  const handleQuestionSolving = async (event) => {
+    event.preventDefault();
+
+    try {
+      const question = findBestQuestion();
+      if (!question) {
+        return;
+      }
+      
+      await solveQuestion(question);
+      
+    } catch (error) {
+      // Silent error handling
     }
   };
 
   const handleKeydown = async (event) => {
     const isRegularHotkey = isHotkeyPressed(event);
     const isMcqHotkey = isMcqHotkeyPressed(event);
+    const isQuestionSolvingHotkey = isQuestionSolvingHotkeyPressed(event);
     
-    // Debug logging
-    console.log(`[Content] Key pressed: ${event.key}, Alt: ${event.altKey}, Ctrl: ${event.ctrlKey}, Shift: ${event.shiftKey}, Meta: ${event.metaKey}`);
-    console.log(`[Content] MCQ Enabled: ${settings.mcqEnabled}, MCQ Hotkey Type: ${settings.mcqHotkeyType}`);
-    console.log(`[Content] Regular hotkey: ${isRegularHotkey}, MCQ hotkey: ${isMcqHotkey}`);
-    
-    if (!isRegularHotkey && !isMcqHotkey) {
+    if (!isRegularHotkey && !isMcqHotkey && !isQuestionSolvingHotkey) {
+      return;
+    }
+
+    if (isQuestionSolvingHotkey) {
+      await handleQuestionSolving(event);
       return;
     }
 
@@ -476,19 +647,15 @@
     if (!selectedText) {
       if (isRegularHotkey) {
         const hotkeyDesc = settings.hotkeyType === "single" ? settings.singleKey : `${settings.modifierKey}+${settings.actionKey}`;
-        console.log(`[Content] ${hotkeyDesc} pressed but no text selected.`);
       } else if (isMcqHotkey) {
         const mcqHotkeyDesc = settings.mcqHotkeyType === "single" ? settings.mcqSingleKey : `${settings.mcqModifierKey}+${settings.mcqActionKey}`;
-        console.log(`[Content] MCQ ${mcqHotkeyDesc} pressed but no text selected.`);
       }
       return;
     }
 
     if (isRegularHotkey) {
-      console.log("[Content] Processing regular text...");
       await handleRegularText(event, selectedText);
     } else if (isMcqHotkey) {
-      console.log("[Content] Processing MCQ text...");
       await handleMcqText(event, selectedText);
     }
   };
@@ -497,36 +664,22 @@
   const init = async () => {
     await loadSettings();
     window.addEventListener("keydown", handleKeydown, true);
-    const hotkeyDesc = settings.hotkeyType === "single" ? settings.singleKey : `${settings.modifierKey}+${settings.actionKey}`;
-    console.log(`[Content] ${hotkeyDesc} listener attached.`);
+    
+    if (settings.questionSolvingEnabled) {
+      const questionSolvingHotkeyDesc = settings.questionSolvingHotkeyType === "single" ? settings.questionSolvingSingleKey : `${settings.questionSolvingModifierKey}+${settings.questionSolvingActionKey}`;
+    }
   };
 
   // Listen for settings changes
   chrome.storage.onChanged.addListener(async (changes, namespace) => {
     if (namespace === "local" && (
       changes.hotkeyType || changes.modifierKey || changes.actionKey || changes.singleKey ||
-      changes.mcqEnabled || changes.mcqHotkeyType || changes.mcqModifierKey || changes.mcqActionKey || changes.mcqSingleKey
+      changes.mcqEnabled || changes.mcqHotkeyType || changes.mcqModifierKey || changes.mcqActionKey || changes.mcqSingleKey ||
+      changes.questionSolvingEnabled || changes.questionSolvingHotkeyType || changes.questionSolvingModifierKey || changes.questionSolvingActionKey || changes.questionSolvingSingleKey || changes.autoSolveDelay || changes.questionDetectionSensitivity
     )) {
       await loadSettings();
-      console.log("[Content] Settings updated:", settings);
     }
   });
-
-  // Test function for debugging MCQ
-  window.testMcqSelection = () => {
-    console.log("[Content] Testing MCQ selection...");
-    const testAnswer = "A";
-    const success = selectMcqOption(testAnswer);
-    console.log(`[Content] Test result for option ${testAnswer}:`, success);
-  };
-
-  // Test function for debugging answer extraction
-  window.testAnswerExtraction = (response) => {
-    console.log("[Content] Testing answer extraction...");
-    const answer = extractAnswerOption(response);
-    console.log(`[Content] Extracted answer:`, answer);
-    return answer;
-  };
 
   init();
 })();

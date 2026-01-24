@@ -438,8 +438,8 @@
           
           <div class="form-group">
             <label for="mcqInstruction">MCQ Instructions</label>
-            <textarea id="mcqInstruction" placeholder="Example: Respond with ONLY the correct answer letter (A, B, C, D). No explanation, no extra text, just the letter."></textarea>
-            <div class="model-info">Custom instructions for MCQ analysis. Leave empty for default behavior.</div>
+            <textarea id="mcqInstruction" placeholder="Example: If lettered options (A, B, C, D), respond with ONLY the letter. If numbered options, respond with the number. If true/false, respond with 'true' or 'false'. If fill-in-the-blank, provide the word/phrase. No explanation."></textarea>
+            <div class="model-info">Custom instructions for MCQ analysis. Handles all question types automatically if left empty.</div>
           </div>
           
           <div class="form-group">
@@ -481,6 +481,80 @@
               <option value=" ">Space</option>
             </select>
             <div class="model-info">Current: <span id="currentMcqSingleHotkey">M</span></div>
+          </div>
+        </div>
+        
+        <!-- Question Solving Mode (Beta) -->
+        <div class="section">
+          <h2 class="section-title">
+            <span class="icon">🚀</span>
+            Question Solving Mode (Beta)
+          </h2>
+          <p class="section-description">Auto-detect and solve MCQ questions without text selection using hotkey</p>
+          
+          <div class="form-group">
+            <label for="questionSolvingEnabled">
+              <input type="checkbox" id="questionSolvingEnabled" />
+              Enable Question Solving Mode (Beta)
+            </label>
+            <div class="model-info">When enabled, automatically detects MCQ questions on the page. Use hotkey to solve without text selection.</div>
+          </div>
+          
+          <div class="form-group">
+            <label for="questionSolvingHotkeyType">Question Solving Hotkey Type</label>
+            <select id="questionSolvingHotkeyType">
+              <option value="combination">Combination (Modifier + Key)</option>
+              <option value="single">Single Key</option>
+            </select>
+          </div>
+          
+          <div class="form-group" id="questionSolvingCombinationHotkey">
+            <label>Question Solving Hotkey Combination</label>
+            <div class="hotkey-container">
+              <select id="questionSolvingModifierKey" class="hotkey-input">
+                <option value="alt">Alt</option>
+                <option value="ctrl">Ctrl</option>
+                <option value="shift">Shift</option>
+                <option value="meta">Meta/Cmd</option>
+              </select>
+              <span class="hotkey-plus">+</span>
+              <select id="questionSolvingActionKey" class="hotkey-input">
+                <option value="s">S</option>
+                <option value="q">Q</option>
+                <option value="r">R</option>
+                <option value="Enter">Enter</option>
+                <option value=" ">Space</option>
+              </select>
+            </div>
+            <div class="model-info">Current: <span id="currentQuestionSolvingHotkey">Alt + S</span></div>
+          </div>
+          
+          <div class="form-group" id="questionSolvingSingleHotkey" style="display: none;">
+            <label>Question Solving Single Key</label>
+            <select id="questionSolvingSingleKey" class="hotkey-input">
+              <option value="s">S</option>
+              <option value="q">Q</option>
+              <option value="r">R</option>
+              <option value="Enter">Enter</option>
+              <option value=" ">Space</option>
+            </select>
+            <div class="model-info">Current: <span id="currentQuestionSolvingSingleHotkey">S</span></div>
+          </div>
+          
+          <div class="form-group">
+            <label for="autoSolveDelay">Auto-Solve Delay (seconds)</label>
+            <input type="number" id="autoSolveDelay" min="0" max="10" value="0" />
+            <div class="model-info">Delay before auto-solving (0 = instant). Set to 0 for immediate solving.</div>
+          </div>
+          
+          <div class="form-group">
+            <label for="questionDetectionSensitivity">Detection Sensitivity</label>
+            <select id="questionDetectionSensitivity">
+              <option value="high">High (detect more questions)</option>
+              <option value="medium">Medium (balanced)</option>
+              <option value="low">Low (fewer false positives)</option>
+            </select>
+            <div class="model-info">How aggressively to detect MCQ questions on the page.</div>
           </div>
         </div>
         
