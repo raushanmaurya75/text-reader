@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "name": "Text Learner",
-  "version": "1.2",
+  "version": "1.2.0",
   "description": "Learn from selected text with multiple AI providers and customizable hotkeys",
-  "permissions": ["storage", "clipboardWrite", "activeTab"],
+  "permissions": ["storage"],
   "host_permissions": [
     "https://api.openai.com/*",
     "https://generativelanguage.googleapis.com/*",
@@ -12,9 +12,12 @@
   "background": {
     "service_worker": "background.js"
   },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.openai.com https://generativelanguage.googleapis.com https://api.groq.com;"
+  },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
+      "matches": ["https://*/*", "http://*/*"],
       "js": ["content.js"],
       "run_at": "document_end"
     }
@@ -25,8 +28,8 @@
     "default_popup": "options.html"
   },
   "icons": {
-    "16": "assets/logo (2).png",
-    "48": "assets/logo (2).png",
-    "128": "assets/logo (2).png"
+    "16": "assets/icon.png",
+    "48": "assets/icon.png",
+    "128": "assets/icon.png"
   }
 }

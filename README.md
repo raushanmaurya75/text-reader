@@ -81,6 +81,14 @@ An intelligent Chrome extension that processes selected text using multiple AI p
 3. Configure MCQ hotkey
 4. Test with sample questions
 
+## 🔒 Privacy & Data Use
+
+This extension sends selected text (or detected question text) to the AI provider you configure. API keys are stored locally in your browser storage. No data is sent to the developer's servers.
+
+See the privacy policy in [PRIVACY_POLICY.md](PRIVACY_POLICY.md).
+
+**Chrome Web Store Privacy Policy URL (hosted):** _Add GitHub raw link here after pushing to GitHub._
+
 ## 🔧 API Setup
 
 ### Groq API
