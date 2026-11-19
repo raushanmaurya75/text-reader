@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Speed Booster</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+      width: 320px;
+      background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+      color: #fff;
+      overflow: hidden;
+    }
+    .header {
+      text-align: center;
+      padding: 18px 16px 12px;
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    }
+    .header h1 { font-size: 18px; font-weight: 700; }
+    .header p { font-size: 11px; opacity: 0.85; margin-top: 2px; }
+    .status-card {
+      margin: 12px;
+      padding: 14px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+    }
+    .status-row:not(:last-child) {
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .status-label { font-size: 12px; color: rgba(255,255,255,0.6); }
+    .status-value { font-size: 13px; font-weight: 600; }
+    .status-value.green { color: #4ade80; }
+    .status-value.blue { color: #60a5fa; }
+    .status-value.yellow { color: #facc15; }
+    .boost-section {
+      margin: 0 12px 12px;
+      padding: 16px;
+      background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(139,92,246,0.2));
+      border-radius: 10px;
+      border: 1px solid rgba(139,92,246,0.3);
+      text-align: center;
+    }
+    .boost-label { font-size: 11px; color: rgba(255,255,255,0.5); margin-bottom: 4px; }
+    #boostSpeed {
+      font-size: 28px;
+      font-weight: 800;
+      cursor: default;
+      user-select: none;
+      background: linear-gradient(90deg, #4ade80, #60a5fa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      transition: transform 0.1s;
+    }
+    #boostSpeed:active { transform: scale(0.95); }
+    .boost-unit { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+    .meter {
+      margin: 10px 12px;
+      height: 6px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .meter-fill {
+      height: 100%;
+      width: 87%;
+      background: linear-gradient(90deg, #4ade80, #60a5fa);
+      border-radius: 3px;
+      animation: pulse-bar 2s ease-in-out infinite;
+    }
+    @keyframes pulse-bar {
+      0%,100% { opacity: 1; } 50% { opacity: 0.7; }
+    }
+    .features {
+      margin: 0 12px 12px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .feature-card {
+      padding: 10px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 8px;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .feature-icon { font-size: 18px; margin-bottom: 4px; }
+    .feature-name { font-size: 10px; color: rgba(255,255,255,0.5); }
+    .feature-val { font-size: 13px; font-weight: 700; color: #4ade80; }
+    .footer {
+      text-align: center;
+      padding: 8px;
+      font-size: 9px;
+      color: rgba(255,255,255,0.25);
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>⚡ Speed Booster</h1>
+    <p>Optimizing your connection...</p>
+  </div>
+
+  <div class="status-card">
+    <div class="status-row">
+      <span class="status-label">Status</span>
+      <span class="status-value green">● Active</span>
+    </div>
+    <div class="status-row">
+      <span class="status-label">DNS Resolution</span>
+      <span class="status-value blue">Optimized</span>
+    </div>
+    <div class="status-row">
+      <span class="status-label">Cache Level</span>
+      <span class="status-value yellow">Enhanced</span>
+    </div>
+    <div class="status-row">
+      <span class="status-label">Latency</span>
+      <span class="status-value green" id="latencyVal">12ms ↓</span>
+    </div>
+  </div>
+
+  <div class="meter"><div class="meter-fill"></div></div>
+
+  <div class="boost-section">
+    <div class="boost-label">Current Boosted Speed</div>
+    <div id="boostSpeed">847 Mbps</div>
+    <div class="boost-unit">Download Speed</div>
+  </div>
+
+  <div class="features">
+    <div class="feature-card">
+      <div class="feature-icon">🚀</div>
+      <div class="feature-val" id="pageLoadVal">3.2x</div>
+      <div class="feature-name">Page Load</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🛡️</div>
+      <div class="feature-val">Active</div>
+      <div class="feature-name">Ad Shield</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📦</div>
+      <div class="feature-val" id="dataUsageVal">-64%</div>
+      <div class="feature-name">Data Usage</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔒</div>
+      <div class="feature-val">AES-256</div>
+      <div class="feature-name">Encryption</div>
+    </div>
+  </div>
+
+  <div class="footer">Speed Booster v1.2.0 · All systems nominal</div>
+
+  <script src="fake.js"></script>
+</body>
+</html>

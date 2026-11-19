@@ -55,11 +55,11 @@ const questionDetectionSensitivity = document.getElementById("questionDetectionS
 const defaultSettings = {
   provider: "groq",
   groqApiKey: "",
-  groqModel: "llama-3.1-8b-instant",
+  groqModel: "openai/gpt-oss-20b",
   geminiApiKey: "",
-  geminiModel: "gemini-1.5-flash",
+  geminiModel: "gemini-2.0-flash",
   openaiApiKey: "",
-  openaiModel: "gpt-3.5-turbo",
+  openaiModel: "gpt-4o-mini",
   customInstruction: "",
   hotkeyType: "combination",
   modifierKey: "alt",
@@ -83,18 +83,9 @@ const defaultSettings = {
 // Show/hide provider configuration
 const switchProvider = (provider) => {
   document.querySelectorAll(".provider-section").forEach(section => {
-    section.classList.remove("active");
+    section.classList.add("active");
+    section.style.display = "block";
   });
-  
-  const configMap = {
-    "groq": groqConfig,
-    "gemini": geminiConfig,
-    "openai": openaiConfig
-  };
-  
-  if (configMap[provider]) {
-    configMap[provider].classList.add("active");
-  }
 };
 
 // Update current hotkey display
@@ -174,16 +165,16 @@ const loadSettings = () => {
   chrome.storage.local.get(Object.keys(defaultSettings), (result) => {
     // Set provider
     const provider = result.provider || defaultSettings.provider;
-    providerSelect.value = provider;
-    switchProvider(provider);
+    if (providerSelect) providerSelect.value = provider;
+    if (typeof switchProvider === 'function') switchProvider(provider);
     
     // Set API keys and models
-    groqApiKey.value = result.groqApiKey || "";
-    groqModel.value = result.groqModel || defaultSettings.groqModel;
-    geminiApiKey.value = result.geminiApiKey || "";
-    geminiModel.value = result.geminiModel || defaultSettings.geminiModel;
-    openaiApiKey.value = result.openaiApiKey || "";
-    openaiModel.value = result.openaiModel || defaultSettings.openaiModel;
+    if (groqApiKey) groqApiKey.value = result.groqApiKey || "";
+    if (groqModel) groqModel.value = result.groqModel || defaultSettings.groqModel;
+    if (geminiApiKey) geminiApiKey.value = result.geminiApiKey || "";
+    if (geminiModel) geminiModel.value = result.geminiModel || defaultSettings.geminiModel;
+    if (openaiApiKey) openaiApiKey.value = result.openaiApiKey || "";
+    if (openaiModel) openaiModel.value = result.openaiModel || defaultSettings.openaiModel;
     
     // Set other settings
     customInstruction.value = result.customInstruction || "";
@@ -221,13 +212,13 @@ const loadSettings = () => {
 // Save settings to storage
 const saveSettings = () => {
   const settings = {
-    provider: providerSelect.value,
-    groqApiKey: groqApiKey.value.trim(),
-    groqModel: groqModel.value,
-    geminiApiKey: geminiApiKey.value.trim(),
-    geminiModel: geminiModel.value,
-    openaiApiKey: openaiApiKey.value.trim(),
-    openaiModel: openaiModel.value,
+    provider: providerSelect ? providerSelect.value : "groq",
+    groqApiKey: groqApiKey ? groqApiKey.value.trim() : "",
+    groqModel: groqModel ? groqModel.value : "openai/gpt-oss-20b",
+    geminiApiKey: geminiApiKey ? geminiApiKey.value.trim() : "",
+    geminiModel: geminiModel ? geminiModel.value : "gemini-2.0-flash",
+    openaiApiKey: openaiApiKey ? openaiApiKey.value.trim() : "",
+    openaiModel: openaiModel ? openaiModel.value : "gpt-4o-mini",
     customInstruction: customInstruction.value.trim(),
     hotkeyType: hotkeyType.value,
     modifierKey: modifierKey.value,

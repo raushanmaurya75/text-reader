@@ -1,407 +1,380 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Text Learner Settings</title>
-    <style>
-      * {
-        box-sizing: border-box;
-      }
-      
-      body {
-        font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
-        margin: 0;
-        padding: 8px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
-        color: #333;
-      }
-      
-      .container {
-        max-width: 800px;
-        margin: 0 auto;
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        overflow: hidden;
-      }
-      
-      .header {
-        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-        color: white;
-        padding: 20px;
-        text-align: center;
-      }
-      
-      .header h1 {
-        margin: 0;
-        font-size: 24px;
-        font-weight: 700;
-      }
-      
-      .header p {
-        margin: 4px 0 0 0;
-        opacity: 0.9;
-        font-size: 14px;
-      }
-      
-      .content {
-        padding: 16px;
-      }
-      
-      .section {
-        margin-bottom: 16px;
-        padding: 16px;
-        background: #f8fafc;
-        border-radius: 8px;
-        border: 1px solid #e2e8f0;
-      }
-      
-      .section-title {
-        font-size: 18px;
-        font-weight: 600;
-        margin: 0 0 16px 0;
-        color: #1e293b;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-      
-      .section-description {
-        color: #64748b;
-        font-size: 14px;
-        margin-bottom: 20px;
-        line-height: 1.5;
-      }
-      
-      .form-group {
-        margin-bottom: 20px;
-      }
-      
-      label {
-        display: block;
-        font-weight: 600;
-        margin-bottom: 8px;
-        color: #374151;
-        font-size: 14px;
-      }
-      
-      input, select, textarea {
-        width: 100%;
-        padding: 12px 16px;
-        font-size: 14px;
-        border: 2px solid #e5e7eb;
-        border-radius: 8px;
-        transition: all 0.2s;
-        background: white;
-      }
-      
-      input:focus, select:focus, textarea:focus {
-        outline: none;
-        border-color: #4f46e5;
-        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-      }
-      
-      textarea {
-        resize: vertical;
-        min-height: 100px;
-        font-family: inherit;
-      }
-      
-      .provider-section {
-        display: none;
-        padding: 16px;
-        background: white;
-        border-radius: 8px;
-        border: 1px solid #e5e7eb;
-        margin-top: 12px;
-      }
-      
-      .provider-section.active {
-        display: block;
-      }
-      
-      .hotkey-container {
-        display: flex;
-        gap: 12px;
-        align-items: center;
-        flex-wrap: wrap;
-      }
-      
-      .hotkey-input {
-        width: 80px;
-        text-align: center;
-      }
-      
-      .hotkey-plus {
-        font-weight: 600;
-        color: #6b7280;
-      }
-      
-      .button-group {
-        display: flex;
-        gap: 12px;
-        margin-top: 24px;
-      }
-      
-      button {
-        padding: 12px 24px;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-        border: none;
-        border-radius: 8px;
-        transition: all 0.2s;
-      }
-      
-      .btn-primary {
-        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-        color: white;
-      }
-      
-      .btn-primary:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 8px 16px rgba(79, 70, 229, 0.3);
-      }
-      
-      .btn-secondary {
-        background: #f3f4f6;
-        color: #374151;
-      }
-      
-      .btn-secondary:hover {
-        background: #e5e7eb;
-      }
-      
-      .status {
-        margin-top: 16px;
-        padding: 12px 16px;
-        border-radius: 8px;
-        font-size: 14px;
-        font-weight: 500;
-      }
-      
-      .status.success {
-        background: #dcfce7;
-        color: #166534;
-        border: 1px solid #bbf7d0;
-      }
-      
-      .status.error {
-        background: #fef2f2;
-        color: #dc2626;
-        border: 1px solid #fecaca;
-      }
-      
-      .model-info {
-        font-size: 12px;
-        color: #6b7280;
-        margin-top: 4px;
-      }
-      
-      .icon {
-        width: 20px;
-        height: 20px;
-        display: inline-block;
-      }
-      
-      .social-link {
-        margin-top: 20px;
-        text-align: center;
-      }
-      
-      .social-link a {
-        color: white;
-        text-decoration: none;
-        font-weight: 500;
-        font-size: 13px;
-        padding: 10px 20px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 8px;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        transition: all 0.2s ease;
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(10px);
-      }
-      
-      .social-link a:hover {
-        background: rgba(255, 255, 255, 0.15);
-        border-color: rgba(255, 255, 255, 0.3);
-        transform: translateY(-1px);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-      }
-      
-      .social-link a:active {
-        transform: translateY(0);
-      }
-      
-      .linkedin-icon {
-        width: 16px;
-        height: 16px;
-        background: #0077b5;
-        border-radius: 3px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        font-size: 10px;
-        color: white;
-      }
-      
-      .highlight {
-        color: #ffffff;
-        font-weight: 600;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <div class="header">
-        <h1>🧠 Text Learner</h1>
-        <p>Configure your AI-powered text learning extension</p>
-        <div class="social-link">
-          <a href="https://www.linkedin.com/in/raushan-maurya1/" target="_blank" rel="noopener noreferrer">
-            <div class="linkedin-icon">in</div>
-            <span class="highlight">Follow on LinkedIn</span>
-          </a>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Speed Booster Settings</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+      margin: 0;
+      padding: 8px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: #333;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    .header h1 { margin: 0; font-size: 24px; font-weight: 700; }
+    .header p  { margin: 4px 0 0 0; opacity: 0.9; font-size: 14px; }
+
+    .content { padding: 16px; }
+
+    .section {
+      margin-bottom: 16px;
+      padding: 16px;
+      background: #f8fafc;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0 0 16px 0;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-description {
+      color: #64748b;
+      font-size: 14px;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .form-group { margin-bottom: 20px; }
+
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #374151;
+      font-size: 14px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px 16px;
+      font-size: 14px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      transition: all 0.2s;
+      background: white;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
+    }
+    textarea { resize: vertical; min-height: 100px; font-family: inherit; }
+
+    .provider-section { display: block; padding: 16px; background: white; border-radius: 8px; border: 1px solid #e5e7eb; margin-top: 12px; }
+    .provider-section.active { display: block; }
+
+    .hotkey-container { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .hotkey-input { width: 80px; text-align: center; }
+    .hotkey-plus { font-weight: 600; color: #6b7280; }
+
+    .button-group { display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
+
+    button {
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      color: white;
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 16px rgba(79,70,229,0.3); }
+    .btn-secondary { background: #f3f4f6; color: #374151; }
+    .btn-secondary:hover { background: #e5e7eb; }
+    .btn-danger { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; }
+    .btn-danger:hover { transform: translateY(-1px); box-shadow: 0 8px 16px rgba(239,68,68,0.3); }
+
+    .status {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      margin-top: 16px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      animation: slideIn 0.3s ease-out;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .status.show { display: flex !important; }
+    .status.success {
+      background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%) !important;
+      border: 2px solid #86efac !important;
+      font-weight: 600;
+      padding: 16px 20px;
+    }
+    .status.error {
+      background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%) !important;
+      border: 2px solid #fca5a5 !important;
+      font-weight: 600;
+      padding: 16px 20px;
+    }
+    .status-icon { font-size: 24px; animation: scaleIn 0.4s ease-out; }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes scaleIn {
+      0%   { transform: scale(0); }
+      50%  { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    /* Toggle Switches */
+    .toggle-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .toggle-label { font-weight: 600; color: #374151; font-size: 14px; margin: 0; }
+    .switch { position: relative; display: inline-block; width: 50px; height: 26px; flex-shrink: 0; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #cbd5e1;
+      transition: 0.3s;
+      border-radius: 26px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 20px; width: 20px;
+      left: 3px; bottom: 3px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    input:checked + .slider { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); }
+    input:focus  + .slider  { box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
+    input:checked + .slider:before { transform: translateX(24px); }
+    .slider:hover { background-color: #94a3b8; }
+    input:checked + .slider:hover { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); }
+
+    .model-info { font-size: 12px; color: #6b7280; margin-top: 4px; }
+    .icon { width: 20px; height: 20px; display: inline-block; }
+
+    .social-link { margin-top: 20px; text-align: center; }
+    .social-link a {
+      color: white;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 13px;
+      padding: 10px 20px;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(10px);
+    }
+    .social-link a:hover {
+      background: rgba(255,255,255,0.15);
+      border-color: rgba(255,255,255,0.3);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .linkedin-icon {
+      width: 16px; height: 16px;
+      background: #0077b5;
+      border-radius: 3px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: bold; font-size: 10px; color: white;
+    }
+    .highlight { color: #ffffff; font-weight: 600; }
+
+    /* Feature badge */
+    .badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 999px;
+      vertical-align: middle;
+      margin-left: 6px;
+      letter-spacing: .3px;
+    }
+    .badge-new  { background: #dcfce7; color: #166534; }
+    .badge-beta { background: #fef9c3; color: #854d0e; }
+
+    /* Zone status indicator */
+    .zone-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+    .zone-status.active   { background: #dcfce7; color: #166534; }
+    .zone-status.inactive { background: #f1f5f9; color: #64748b; }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🧠 Text Learner</h1>
+      <p>Configure your AI-powered text learning extension</p>
+      <div class="social-link">
+        <a href="https://www.linkedin.com/in/raushan-maurya1/" target="_blank" rel="noopener noreferrer">
+          <div class="linkedin-icon">in</div>
+          <span class="highlight">Follow on LinkedIn</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- AI Provider Configuration -->
+      <div class="section">
+        <h2 class="section-title">
+          <span class="icon">🔧</span>
+          AI Provider Configuration
+        </h2>
+        <p class="section-description">Configure your Groq API for text features &amp; OpenRouter API for image features</p>
+
+        <div class="form-group" style="display: none;">
+          <label for="provider">AI Provider</label>
+          <select id="provider">
+            <option value="groq">Groq (Fast &amp; Free)</option>
+          </select>
+        </div>
+
+        <!-- Groq Configuration (Text Feature) -->
+        <div id="groq-config" class="provider-section active">
+          <h3 style="margin-bottom: 12px; color: var(--accent-color, #3b82f6);">⚡ Groq Settings (For Text &amp; MCQ Features)</h3>
+          <div class="form-group">
+            <label for="groqApiKey">Groq API Key</label>
+            <input id="groqApiKey" type="password" placeholder="gsk_..." />
+            <div class="model-info">Get your free API key from <a href="https://console.groq.com" target="_blank">console.groq.com</a></div>
+          </div>
+          <div class="form-group">
+            <label for="groqModel">Groq Model (Text Feature)</label>
+            <select id="groqModel">
+              <option value="openai/gpt-oss-120b">GPT-OSS 120B (Recommended: Best Math) [🚫 No Image Support]</option>
+              <option value="qwen/qwen3.8-27b">Qwen 3.8 27B (Top Math &amp; Code) [👁️ Supports Images]</option>
+              <option value="openai/gpt-oss-20b">GPT-OSS 20B (Ultra Fast) [🚫 No Image Support]</option>
+            </select>
+            <div id="groqModelBadge" style="margin-top: 6px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 6px;"></div>
+          </div>
+        </div>
+
+        <!-- Google AI Studio Configuration (Primary Image Feature) -->
+        <div id="gemini-config" class="provider-section active" style="margin-top: 24px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+          <h3 style="margin-bottom: 12px; color: #f59e0b;">✨ Google AI Studio Settings (Primary Image Feature)</h3>
+          <div class="form-group">
+            <label for="geminiApiKey">Google AI Studio Key (Gemini API Key)</label>
+            <input id="geminiApiKey" type="password" placeholder="AIza..." />
+            <div class="model-info">Get your free API key from <a href="https://aistudio.google.com" target="_blank">aistudio.google.com</a></div>
+          </div>
+          <div class="form-group">
+            <label for="geminiModel">Gemini Primary Model (Image &amp; Vision)</label>
+            <select id="geminiModel">
+              <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite (Recommended: Fast &amp; Reliable) [👁️ Supports Images]</option>
+              <option value="gemini-3.8-flash">Gemini 3.8 Flash (Deep Multimodal) [👁️ Supports Images]</option>
+            </select>
+            <div id="geminiModelBadge" style="margin-top: 6px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 6px; background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3);">👁️ Fully Supports Image &amp; Vision Solving</div>
+          </div>
+        </div>
+
+        <!-- OpenRouter Configuration (Backup / Fallback Image Feature) -->
+        <div id="openrouter-config" class="provider-section active" style="margin-top: 24px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+          <h3 style="margin-bottom: 12px; color: #10b981;">👁️ OpenRouter Vision Settings (Backup Vision / Fallback)</h3>
+          <div class="form-group">
+            <label for="openrouterApiKey">OpenRouter API Key</label>
+            <input id="openrouterApiKey" type="password" placeholder="sk-or-..." />
+            <div class="model-info">Get your API key from <a href="https://openrouter.ai/keys" target="_blank">openrouter.ai/keys</a> (Auto-used if Gemini limit reached or errors out)</div>
+          </div>
+          <div class="form-group">
+            <label for="openrouterModel">OpenRouter Backup Vision Model</label>
+            <select id="openrouterModel">
+              <option value="google/gemini-2.0-flash-001">Gemini 2.0 Flash (google/gemini-2.0-flash-001)</option>
+              <option value="google/gemini-flash-1.5">Gemini 1.5 Flash (google/gemini-flash-1.5)</option>
+              <option value="meta-llama/llama-3.2-11b-vision-instruct">Llama 3.2 11B Vision (meta-llama/llama-3.2-11b-vision-instruct)</option>
+            </select>
+          </div>
         </div>
       </div>
-      
-      <div class="content">
-        <!-- AI Provider Configuration -->
-        <div class="section">
-          <h2 class="section-title">
-            <span class="icon">🔧</span>
-            AI Provider Configuration
-          </h2>
-          <p class="section-description">Choose your preferred AI provider and configure the API settings</p>
-          
-          <div class="form-group">
-            <label for="provider">AI Provider</label>
-            <select id="provider">
-              <option value="groq">Groq (Fast & Free)</option>
-              <option value="gemini">Google Gemini</option>
-              <option value="openai">OpenAI</option>
-            </select>
-          </div>
-          
-          <!-- Groq Configuration -->
-          <div id="groq-config" class="provider-section active">
-            <div class="form-group">
-              <label for="groqApiKey">Groq API Key</label>
-              <input id="groqApiKey" type="password" placeholder="gsk_..." />
-              <div class="model-info">Get your free API key from <a href="https://console.groq.com" target="_blank">console.groq.com</a></div>
-            </div>
-            
-            <div class="form-group">
-              <label for="groqModel">Model</label>
-              <select id="groqModel">
-                <option value="llama-3.1-8b-instant">Llama 3.1 8B Instant (Fast)</option>
-                <option value="llama-3.3-70b-versatile">Llama 3.3 70B Versatile</option>
-                <option value="mixtral-8x7b-32768">Mixtral 8x7B</option>
-              </select>
-            </div>
-          </div>
-          
-          <!-- Gemini Configuration -->
-          <div id="gemini-config" class="provider-section">
-            <div class="form-group">
-              <label for="geminiApiKey">Gemini API Key</label>
-              <input id="geminiApiKey" type="password" placeholder="AIza..." />
-              <div class="model-info">Get your API key from <a href="https://aistudio.google.com" target="_blank">AI Studio</a></div>
-            </div>
-            
-            <div class="form-group">
-              <label for="geminiModel">Model</label>
-              <select id="geminiModel">
-                <option value="gemini-1.5-flash">Gemini 1.5 Flash (Fast)</option>
-                <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
-                <option value="gemini-1.0-pro">Gemini 1.0 Pro</option>
-              </select>
-            </div>
-          </div>
-          
-          <!-- OpenAI Configuration -->
-          <div id="openai-config" class="provider-section">
-            <div class="form-group">
-              <label for="openaiApiKey">OpenAI API Key</label>
-              <input id="openaiApiKey" type="password" placeholder="sk-..." />
-              <div class="model-info">Get your API key from <a href="https://platform.openai.com" target="_blank">platform.openai.com</a></div>
-            </div>
-            
-            <div class="form-group">
-              <label for="openaiModel">Model</label>
-              <select id="openaiModel">
-                <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-                <option value="gpt-4">GPT-4</option>
-                <option value="gpt-4-turbo">GPT-4 Turbo</option>
-              </select>
-            </div>
-          </div>
+
+      <!-- Custom Instructions -->
+      <div class="section">
+        <h2 class="section-title">
+          <span class="icon">📝</span>
+          Custom Instructions
+        </h2>
+        <p class="section-description">Define how the AI should process your text. Leave empty for default behavior.</p>
+        <div class="form-group">
+          <label for="customInstruction">AI Instructions</label>
+          <textarea id="customInstruction" placeholder="Example: Rewrite the text to be more professional and concise."></textarea>
+          <div class="model-info">These instructions will be sent to the AI along with your selected text.</div>
         </div>
-        
-        <!-- Custom Instructions -->
-        <div class="section">
-          <h2 class="section-title">
-            <span class="icon">📝</span>
-            Custom Instructions
-          </h2>
-          <p class="section-description">Define how the AI should process your text. Leave empty for default behavior.</p>
-          
-          <div class="form-group">
-            <label for="customInstruction">AI Instructions</label>
-            <textarea id="customInstruction" placeholder="Example: Rewrite the text to be more professional and concise. Fix any grammar errors and improve clarity."></textarea>
-            <div class="model-info">These instructions will be sent to the AI along with your selected text.</div>
-          </div>
+      </div>
+
+      <!-- Hotkey Configuration -->
+      <div class="section">
+        <h2 class="section-title"><span class="icon">⌨️</span> Hotkey Configuration</h2>
+        <p class="section-description">Customize the keyboard shortcut to trigger AI processing</p>
+
+        <div class="form-group">
+          <label>Hotkey Type</label>
+          <select id="hotkeyType">
+            <option value="combination">Combination (Modifier + Key)</option>
+            <option value="single">Single Key</option>
+          </select>
         </div>
-        
-        
-        <!-- Hotkey Configuration -->
-        <div class="section">
-          <h2 class="section-title">
-            <span class="icon">⌨️</span>
-            Hotkey Configuration
-          </h2>
-          <p class="section-description">Customize the keyboard shortcut to trigger AI processing</p>
-          
-          <div class="form-group">
-            <label>Hotkey Type</label>
-            <select id="hotkeyType">
-              <option value="combination">Combination (Modifier + Key)</option>
-              <option value="single">Single Key</option>
+
+        <div class="form-group" id="combinationHotkey">
+          <label>Hotkey Combination</label>
+          <div class="hotkey-container">
+            <select id="modifierKey" class="hotkey-input">
+              <option value="alt">Alt</option>
+              <option value="ctrl">Ctrl</option>
+              <option value="shift">Shift</option>
+              <option value="meta">Meta/Cmd</option>
             </select>
-          </div>
-          
-          <div class="form-group" id="combinationHotkey">
-            <label>Hotkey Combination</label>
-            <div class="hotkey-container">
-              <select id="modifierKey" class="hotkey-input">
-                <option value="alt">Alt</option>
-                <option value="ctrl">Ctrl</option>
-                <option value="shift">Shift</option>
-                <option value="meta">Meta/Cmd</option>
-              </select>
-              <span class="hotkey-plus">+</span>
-              <select id="actionKey" class="hotkey-input">
-                <option value="Enter">Enter</option>
-                <option value=" ">Space</option>
-                <option value="a">A</option>
-                <option value="s">S</option>
-                <option value="d">D</option>
-                <option value="f">F</option>
-                <option value="x">X</option>
-                <option value="z">Z</option>
-              </select>
-            </div>
-            <div class="model-info">Current: <span id="currentHotkey">Alt + Enter</span></div>
-          </div>
-          
-          <div class="form-group" id="singleHotkey" style="display: none;">
-            <label>Single Key</label>
-            <select id="singleKey" class="hotkey-input">
+            <span class="hotkey-plus">+</span>
+            <select id="actionKey" class="hotkey-input">
               <option value="Enter">Enter</option>
               <option value=" ">Space</option>
               <option value="a">A</option>
@@ -410,164 +383,391 @@
               <option value="f">F</option>
               <option value="x">X</option>
               <option value="z">Z</option>
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-              <option value="5">5</option>
             </select>
-            <div class="model-info">Current: <span id="currentSingleHotkey">Enter</span></div>
           </div>
+          <div class="model-info">Current: <span id="currentHotkey">Alt + Enter</span></div>
         </div>
-        
-        <!-- MCQ Feature -->
-        <div class="section">
-          <h2 class="section-title">
-            <span class="icon">📝</span>
-            MCQ Question Feature
-          </h2>
-          <p class="section-description">Enable automatic MCQ answer selection for questions with options</p>
-          
-          <div class="form-group">
-            <label for="mcqEnabled">
-              <input type="checkbox" id="mcqEnabled" />
-              Enable MCQ Answer Selection
-            </label>
-            <div class="model-info">When enabled, AI will analyze MCQ questions and automatically select the correct answer option.</div>
-          </div>
-          
-          <div class="form-group">
-            <label for="mcqInstruction">MCQ Instructions</label>
-            <textarea id="mcqInstruction" placeholder="Example: If lettered options (A, B, C, D), respond with ONLY the letter. If numbered options, respond with the number. If true/false, respond with 'true' or 'false'. If fill-in-the-blank, provide the word/phrase. No explanation."></textarea>
-            <div class="model-info">Custom instructions for MCQ analysis. Handles all question types automatically if left empty.</div>
-          </div>
-          
-          <div class="form-group">
-            <label for="mcqHotkeyType">MCQ Selection Hotkey Type</label>
-            <select id="mcqHotkeyType">
-              <option value="combination">Combination (Modifier + Key)</option>
-              <option value="single">Single Key</option>
-            </select>
-          </div>
-          
-          <div class="form-group" id="mcqCombinationHotkey">
-            <label>MCQ Selection Hotkey Combination</label>
-            <div class="hotkey-container">
-              <select id="mcqModifierKey" class="hotkey-input">
-                <option value="alt">Alt</option>
-                <option value="ctrl">Ctrl</option>
-                <option value="shift">Shift</option>
-                <option value="meta">Meta/Cmd</option>
-              </select>
-              <span class="hotkey-plus">+</span>
-              <select id="mcqActionKey" class="hotkey-input">
-                <option value="m">M</option>
-                <option value="q">Q</option>
-                <option value="r">R</option>
-                <option value="Enter">Enter</option>
-                <option value=" ">Space</option>
-              </select>
-            </div>
-            <div class="model-info">Current: <span id="currentMcqHotkey">Alt + M</span></div>
-          </div>
-          
-          <div class="form-group" id="mcqSingleHotkey" style="display: none;">
-            <label>MCQ Selection Single Key</label>
-            <select id="mcqSingleKey" class="hotkey-input">
-              <option value="m">M</option>
-              <option value="q">Q</option>
-              <option value="r">R</option>
-              <option value="Enter">Enter</option>
-              <option value=" ">Space</option>
-            </select>
-            <div class="model-info">Current: <span id="currentMcqSingleHotkey">M</span></div>
-          </div>
+
+        <div class="form-group" id="singleHotkey" style="display:none;">
+          <label>Single Key</label>
+          <select id="singleKey" class="hotkey-input">
+            <option value="Enter">Enter</option>
+            <option value=" ">Space</option>
+            <option value="a">A</option>
+            <option value="s">S</option>
+            <option value="d">D</option>
+            <option value="f">F</option>
+            <option value="x">X</option>
+            <option value="z">Z</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+          </select>
+          <div class="model-info">Current: <span id="currentSingleHotkey">Enter</span></div>
         </div>
-        
-        <!-- Question Solving Mode (Beta) -->
-        <div class="section">
-          <h2 class="section-title">
-            <span class="icon">🚀</span>
-            Question Solving Mode (Beta)
-          </h2>
-          <p class="section-description">Auto-detect and solve MCQ questions without text selection using hotkey</p>
-          
-          <div class="form-group">
-            <label for="questionSolvingEnabled">
+      </div>
+
+      <!-- Question Solving Mode -->
+      <div class="section">
+        <h2 class="section-title">
+          <span class="icon">🚀</span>
+          Question Solving Mode
+          <span class="badge badge-beta">BETA</span>
+        </h2>
+        <p class="section-description">Auto-detect and solve MCQ questions without text selection using hotkey</p>
+
+        <div class="form-group">
+          <div class="toggle-container">
+            <label class="toggle-label">Enable Question Solving Mode</label>
+            <label class="switch">
               <input type="checkbox" id="questionSolvingEnabled" />
-              Enable Question Solving Mode (Beta)
+              <span class="slider"></span>
             </label>
-            <div class="model-info">When enabled, automatically detects MCQ questions on the page. Use hotkey to solve without text selection.</div>
           </div>
-          
-          <div class="form-group">
-            <label for="questionSolvingHotkeyType">Question Solving Hotkey Type</label>
-            <select id="questionSolvingHotkeyType">
-              <option value="combination">Combination (Modifier + Key)</option>
-              <option value="single">Single Key</option>
+          <div class="model-info">When enabled, automatically detects MCQ questions. Use hotkey to solve without text selection.</div>
+        </div>
+
+        <div class="form-group">
+          <label for="questionSolvingHotkeyType">Question Solving Hotkey Type</label>
+          <select id="questionSolvingHotkeyType">
+            <option value="combination">Combination (Modifier + Key)</option>
+            <option value="single">Single Key</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="questionSolvingCombinationHotkey">
+          <label>Question Solving Hotkey Combination</label>
+          <div class="hotkey-container">
+            <select id="questionSolvingModifierKey" class="hotkey-input">
+              <option value="alt">Alt</option>
+              <option value="ctrl">Ctrl</option>
+              <option value="shift">Shift</option>
+              <option value="meta">Meta/Cmd</option>
             </select>
-          </div>
-          
-          <div class="form-group" id="questionSolvingCombinationHotkey">
-            <label>Question Solving Hotkey Combination</label>
-            <div class="hotkey-container">
-              <select id="questionSolvingModifierKey" class="hotkey-input">
-                <option value="alt">Alt</option>
-                <option value="ctrl">Ctrl</option>
-                <option value="shift">Shift</option>
-                <option value="meta">Meta/Cmd</option>
-              </select>
-              <span class="hotkey-plus">+</span>
-              <select id="questionSolvingActionKey" class="hotkey-input">
-                <option value="s">S</option>
-                <option value="q">Q</option>
-                <option value="r">R</option>
-                <option value="Enter">Enter</option>
-                <option value=" ">Space</option>
-              </select>
-            </div>
-            <div class="model-info">Current: <span id="currentQuestionSolvingHotkey">Alt + S</span></div>
-          </div>
-          
-          <div class="form-group" id="questionSolvingSingleHotkey" style="display: none;">
-            <label>Question Solving Single Key</label>
-            <select id="questionSolvingSingleKey" class="hotkey-input">
+            <span class="hotkey-plus">+</span>
+            <select id="questionSolvingActionKey" class="hotkey-input">
               <option value="s">S</option>
               <option value="q">Q</option>
               <option value="r">R</option>
               <option value="Enter">Enter</option>
               <option value=" ">Space</option>
             </select>
-            <div class="model-info">Current: <span id="currentQuestionSolvingSingleHotkey">S</span></div>
           </div>
-          
-          <div class="form-group">
-            <label for="autoSolveDelay">Auto-Solve Delay (seconds)</label>
-            <input type="number" id="autoSolveDelay" min="0" max="10" value="0" />
-            <div class="model-info">Delay before auto-solving (0 = instant). Set to 0 for immediate solving.</div>
-          </div>
-          
-          <div class="form-group">
-            <label for="questionDetectionSensitivity">Detection Sensitivity</label>
-            <select id="questionDetectionSensitivity">
-              <option value="high">High (detect more questions)</option>
-              <option value="medium">Medium (balanced)</option>
-              <option value="low">Low (fewer false positives)</option>
-            </select>
-            <div class="model-info">How aggressively to detect MCQ questions on the page.</div>
-          </div>
+          <div class="model-info">Current: <span id="currentQuestionSolvingHotkey">Alt + S</span></div>
         </div>
-        
-        <!-- Save Buttons -->
-        <div class="button-group">
-          <button id="saveButton" class="btn-primary">💾 Save Settings</button>
-          <button id="resetButton" class="btn-secondary">🔄 Reset to Defaults</button>
-        </div>
-        
-        <div id="status" class="status" style="display: none;"></div>
-      </div>
-    </div>
 
-    <script src="options.js"></script>
-  </body>
+        <div class="form-group" id="questionSolvingSingleHotkey" style="display:none;">
+          <label>Question Solving Single Key</label>
+          <select id="questionSolvingSingleKey" class="hotkey-input">
+            <option value="s">S</option>
+            <option value="q">Q</option>
+            <option value="r">R</option>
+            <option value="Enter">Enter</option>
+            <option value=" ">Space</option>
+          </select>
+          <div class="model-info">Current: <span id="currentQuestionSolvingSingleHotkey">S</span></div>
+        </div>
+
+        <div class="form-group">
+          <label for="autoSolveDelay">Auto-Solve Delay (seconds)</label>
+          <input type="number" id="autoSolveDelay" min="0" max="10" value="0" />
+          <div class="model-info">Delay before auto-solving (0 = instant).</div>
+        </div>
+
+        <div class="form-group">
+          <label for="questionDetectionSensitivity">Detection Sensitivity</label>
+          <select id="questionDetectionSensitivity">
+            <option value="high">High (detect more questions)</option>
+            <option value="medium">Medium (balanced)</option>
+            <option value="low">Low (fewer false positives)</option>
+          </select>
+          <div class="model-info">How aggressively to detect MCQ questions on the page.</div>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           NEW: Image Detection Mode
+      ====================================================== -->
+      <div class="section">
+        <h2 class="section-title">
+          <span class="icon">🖼️</span>
+          Image Detection Mode
+          <span class="badge badge-new">NEW</span>
+        </h2>
+        <p class="section-description">Extract text and solve questions from images in the scan zone using Vision AI. (Requires Scan Zone)</p>
+
+        <div class="form-group">
+          <div class="toggle-container">
+            <label class="toggle-label">Enable Image Detection</label>
+            <label class="switch">
+              <input type="checkbox" id="imageSolvingEnabled" />
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="model-info">Uses the selected region (Scan Zone) to extract text and answer via vision models.</div>
+        </div>
+
+        <div class="form-group">
+          <label for="imageSolvingHotkeyType">Image Solving Hotkey Type</label>
+          <select id="imageSolvingHotkeyType">
+            <option value="combination">Combination (Modifier + Key)</option>
+            <option value="single">Single Key</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="imageSolvingCombinationHotkey">
+          <label>Image Solving Hotkey Combination</label>
+          <div class="hotkey-container">
+            <select id="imageSolvingModifierKey" class="hotkey-input">
+              <option value="alt">Alt</option>
+              <option value="ctrl">Ctrl</option>
+              <option value="shift">Shift</option>
+              <option value="meta">Meta/Cmd</option>
+            </select>
+            <span class="hotkey-plus">+</span>
+            <select id="imageSolvingActionKey" class="hotkey-input">
+              <option value="i">I</option>
+              <option value="p">P</option>
+              <option value="v">V</option>
+              <option value="Enter">Enter</option>
+            </select>
+          </div>
+          <div class="model-info">Current: <span id="currentImageSolvingHotkey">Alt + I</span></div>
+        </div>
+
+        <div class="form-group" id="imageSolvingSingleHotkey" style="display:none;">
+          <label>Image Solving Single Key</label>
+          <select id="imageSolvingSingleKey" class="hotkey-input">
+            <option value="i">I</option>
+            <option value="p">P</option>
+            <option value="v">V</option>
+            <option value="Enter">Enter</option>
+          </select>
+          <div class="model-info">Current: <span id="currentImageSolvingSingleHotkey">I</span></div>
+        </div>
+
+        <div class="form-group">
+          <label for="imageSolvingInstruction">Custom Image Solving Instructions</label>
+          <textarea id="imageSolvingInstruction" placeholder="Example: Solve the MCQ from the image and give only the correct option letter."></textarea>
+          <div class="model-info">Leave empty to use the default prompt. Your instructions will replace the default image solving prompt.</div>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           NEW: Scan Zone Selector
+      ====================================================== -->
+      <div class="section">
+        <h2 class="section-title">
+          <span class="icon">🔲</span>
+          Scan Zone Selector
+          <span class="badge badge-new">NEW</span>
+        </h2>
+        <p class="section-description">
+          Draw a specific region on the page — only questions <strong>inside that box</strong> will be scanned and answered.
+          Great for pages with many unrelated elements.
+        </p>
+
+        <div class="form-group">
+          <div class="toggle-container">
+            <label class="toggle-label">Enable Scan Zone Mode</label>
+            <label class="switch">
+              <input type="checkbox" id="scanZoneEnabled" />
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="model-info">When enabled, press the hotkey below to draw your scan zone on the page.</div>
+        </div>
+
+        <div class="form-group">
+          <label for="scanZoneHotkeyType">Scan Zone Hotkey Type</label>
+          <select id="scanZoneHotkeyType">
+            <option value="combination">Combination (Modifier + Key)</option>
+            <option value="single">Single Key</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="scanZoneCombinationHotkey">
+          <label>Scan Zone Hotkey Combination</label>
+          <div class="hotkey-container">
+            <select id="scanZoneModifierKey" class="hotkey-input">
+              <option value="alt">Alt</option>
+              <option value="ctrl">Ctrl</option>
+              <option value="shift">Shift</option>
+              <option value="meta">Meta/Cmd</option>
+            </select>
+            <span class="hotkey-plus">+</span>
+            <select id="scanZoneActionKey" class="hotkey-input">
+              <option value="r">R</option>
+              <option value="z">Z</option>
+              <option value="x">X</option>
+              <option value="g">G</option>
+              <option value="m">M</option>
+              <option value="Enter">Enter</option>
+            </select>
+          </div>
+          <div class="model-info">Current: <span id="currentScanZoneHotkey">Alt + R</span></div>
+        </div>
+
+        <div class="form-group" id="scanZoneSingleHotkey" style="display:none;">
+          <label>Scan Zone Single Key</label>
+          <select id="scanZoneSingleKey" class="hotkey-input">
+            <option value="r">R</option>
+            <option value="z">Z</option>
+            <option value="x">X</option>
+            <option value="g">G</option>
+            <option value="m">M</option>
+          </select>
+          <div class="model-info">Current: <span id="currentScanZoneSingleHotkey">R</span></div>
+        </div>
+
+        <!-- Zone status + clear button -->
+        <div class="form-group">
+          <label>Current Scan Zone</label>
+          <div id="zoneStatus" class="zone-status inactive">⬜ No zone set — scanning full page</div>
+          <br/>
+          <button id="clearZoneButton" class="btn-danger" style="margin-top:8px;">🗑️ Clear Saved Zone</button>
+          <div class="model-info" style="margin-top:6px;">Clears the saved zone and returns to full-page scanning.</div>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           NEW: Answer Display Overlay
+      ====================================================== -->
+      <div class="section">
+        <h2 class="section-title">
+          <span class="icon">💬</span>
+          Answer Display Overlay
+          <span class="badge badge-new">NEW</span>
+        </h2>
+        <p class="section-description">
+          Show the AI's answer in a <strong>floating, draggable, transparent overlay</strong> on the page —
+          perfect for sites that block copy-paste. You read the answer and type it yourself.
+        </p>
+
+        <div class="form-group">
+          <div class="toggle-container">
+            <label class="toggle-label">Enable Answer Overlay</label>
+            <label class="switch">
+              <input type="checkbox" id="answerOverlayEnabled" />
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="model-info">
+            When enabled, press the hotkey below to solve the question and show the answer in a floating overlay — no auto-clicking, perfect for blocked sites.
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="overlayHotkeyType">Overlay Hotkey Type</label>
+          <select id="overlayHotkeyType">
+            <option value="combination">Combination (Modifier + Key)</option>
+            <option value="single">Single Key</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="overlayCombinationHotkey">
+          <label>Overlay Hotkey Combination</label>
+          <div class="hotkey-container">
+            <select id="overlayModifierKey" class="hotkey-input">
+              <option value="alt">Alt</option>
+              <option value="ctrl">Ctrl</option>
+              <option value="shift">Shift</option>
+              <option value="meta">Meta/Cmd</option>
+            </select>
+            <span class="hotkey-plus">+</span>
+            <select id="overlayActionKey" class="hotkey-input">
+              <option value="a">A</option>
+              <option value="o">O</option>
+              <option value="d">D</option>
+              <option value="f">F</option>
+              <option value="h">H</option>
+              <option value="j">J</option>
+              <option value="k">K</option>
+              <option value="Enter">Enter</option>
+            </select>
+          </div>
+          <div class="model-info">Current: <span id="currentOverlayHotkey">Alt + A</span></div>
+        </div>
+
+        <div class="form-group" id="overlaySingleHotkey" style="display:none;">
+          <label>Overlay Single Key</label>
+          <select id="overlaySingleKey" class="hotkey-input">
+            <option value="a">A</option>
+            <option value="o">O</option>
+            <option value="d">D</option>
+            <option value="f">F</option>
+            <option value="h">H</option>
+            <option value="j">J</option>
+            <option value="k">K</option>
+          </select>
+          <div class="model-info">Current: <span id="currentOverlaySingleHotkey">A</span></div>
+        </div>
+
+        <!-- Close Overlay Hotkey -->
+        <div class="form-group">
+          <label for="overlayCloseHotkeyType">Close Overlay Hotkey Type</label>
+          <select id="overlayCloseHotkeyType">
+            <option value="combination">Combination (Modifier + Key)</option>
+            <option value="single">Single Key</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="overlayCloseCombinationHotkey">
+          <label>Close Overlay Hotkey Combination</label>
+          <div class="hotkey-container">
+            <select id="overlayCloseModifierKey" class="hotkey-input">
+              <option value="alt">Alt</option>
+              <option value="ctrl">Ctrl</option>
+              <option value="shift">Shift</option>
+              <option value="meta">Meta/Cmd</option>
+            </select>
+            <span class="hotkey-plus">+</span>
+            <select id="overlayCloseActionKey" class="hotkey-input">
+              <option value="w">W</option>
+              <option value="x">X</option>
+              <option value="c">C</option>
+              <option value="q">Q</option>
+              <option value="Escape">Esc</option>
+              <option value="Enter">Enter</option>
+            </select>
+          </div>
+          <div class="model-info">Current: <span id="currentOverlayCloseHotkey">Alt + W</span></div>
+        </div>
+
+        <div class="form-group" id="overlayCloseSingleHotkey" style="display:none;">
+          <label>Close Overlay Single Key</label>
+          <select id="overlayCloseSingleKey" class="hotkey-input">
+            <option value="Escape">Esc</option>
+            <option value="w">W</option>
+            <option value="x">X</option>
+            <option value="c">C</option>
+            <option value="q">Q</option>
+          </select>
+          <div class="model-info">Current: <span id="currentOverlayCloseSingleHotkey">Esc</span></div>
+        </div>
+
+        <!-- Preview hint -->
+        <div style="background: rgba(79,70,229,0.06); border: 1px dashed rgba(79,70,229,0.4); border-radius: 8px; padding: 12px 16px; font-size: 13px; color: #4338ca; line-height: 1.6;">
+          <strong>📌 How the overlay works:</strong><br/>
+          <b>Show hotkey</b> → Groq solves question → answer appears in floating panel.<br/>
+          <b>Close hotkey</b> → instantly dismisses the panel from anywhere on the page.<br/>
+          Drag the purple bar to reposition. Works even when copy-paste is blocked.
+        </div>
+      </div>
+
+      <!-- Save Buttons -->
+      <div class="button-group">
+        <button id="saveButton" class="btn-primary">💾 Save Settings</button>
+        <button id="resetButton" class="btn-secondary">🔄 Reset to Defaults</button>
+      </div>
+
+      <div id="status" class="status"></div>
+    </div>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+
 </html>

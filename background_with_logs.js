@@ -29,7 +29,7 @@ const callGroq = async (text, apiKey, model, customInstruction) => {
         },
         {
           role: "user",
-          content: text
+          content: typeof text === "string" ? text : String(text || "")
         }
       ]
     })
@@ -154,7 +154,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       switch (provider) {
         case "groq":
           apiKey = settings.groqApiKey;
-          model = settings.groqModel || "llama-3.1-8b-instant";
+          model = settings.groqModel || "openai/gpt-oss-20b";
           if (!apiKey) {
             throw new Error("Missing Groq API key. Set it in the extension options.");
           }
@@ -163,7 +163,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           
         case "gemini":
           apiKey = settings.geminiApiKey;
-          model = settings.geminiModel || "gemini-1.5-flash";
+          model = settings.geminiModel || "gemini-2.0-flash";
           if (!apiKey) {
             throw new Error("Missing Gemini API key. Set it in the extension options.");
           }
@@ -172,7 +172,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           
         case "openai":
           apiKey = settings.openaiApiKey;
-          model = settings.openaiModel || "gpt-3.5-turbo";
+          model = settings.openaiModel || "gpt-4o-mini";
           if (!apiKey) {
             throw new Error("Missing OpenAI API key. Set it in the extension options.");
           }

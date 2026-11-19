@@ -1,31 +1,41 @@
 {
   "manifest_version": 3,
-  "name": "Text Learner",
+  "name": "Speed Booster",
   "version": "1.2.0",
-  "description": "Learn from selected text with multiple AI providers and customizable hotkeys",
-  "permissions": ["storage"],
+  "description": "Boost your browsing speed with advanced optimization",
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
   "host_permissions": [
+    "<all_urls>",
     "https://api.openai.com/*",
     "https://generativelanguage.googleapis.com/*",
-    "https://api.groq.com/*"
+    "https://api.groq.com/*",
+    "https://openrouter.ai/*"
   ],
   "background": {
     "service_worker": "background.js"
   },
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.openai.com https://generativelanguage.googleapis.com https://api.groq.com;"
+    "extension_pages": "script-src 'self'; object-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.openai.com https://generativelanguage.googleapis.com https://api.groq.com https://openrouter.ai;"
   },
   "content_scripts": [
     {
-      "matches": ["https://*/*", "http://*/*"],
-      "js": ["content.js"],
+      "matches": [
+        "https://*/*",
+        "http://*/*"
+      ],
+      "js": [
+        "content.js"
+      ],
       "run_at": "document_end"
     }
   ],
   "options_page": "options.html",
   "action": {
-    "default_title": "Text Learner",
-    "default_popup": "options.html"
+    "default_title": "Speed Booster",
+    "default_popup": "fake.html"
   },
   "icons": {
     "16": "assets/icon.png",

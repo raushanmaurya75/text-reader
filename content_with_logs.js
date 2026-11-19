@@ -177,6 +177,80 @@
     return selectedText;
   };
 
+  // Helper function to force aggressive DOM refresh
+  const forceDOMRefresh = async () => {
+    console.log('[Content] Forcing aggressive DOM refresh...');
+    
+    // Multiple reflow triggers
+    for (let i = 0; i < 5; i++) {
+      document.body.offsetHeight; // Trigger reflow
+      document.documentElement.offsetHeight; // Trigger document reflow
+      
+      // Force layout recalculation
+      const styles = window.getComputedStyle(document.body);
+      const width = styles.width;
+      const height = styles.height;
+      
+      // Small delay between refreshes
+      await new Promise(resolve => setTimeout(resolve, 20));
+    }
+    
+    // Clear any potential cached references
+    if (window.getSelection) {
+      window.getSelection().removeAllRanges();
+    }
+    
+    console.log('[Content] DOM refresh completed');
+  };
+
+  // Helper function to clear stale states and cached references
+  const clearStaleStates = async () => {
+    console.log('[Content] Clearing stale states...');
+    
+    // Clear any existing selections globally
+    const allChecked = document.querySelectorAll('input[type="radio"]:checked, input[type="checkbox"]:checked');
+    if (allChecked.length > 0) {
+      console.log(`[Content] Clearing ${allChecked.length} existing selections globally`);
+      allChecked.forEach(input => {
+        try {
+          input.checked = false;
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+        } catch (err) {
+          // Ignore errors during clearing
+        }
+      });
+    }
+    
+    // Clear any focus states
+    if (document.activeElement && document.activeElement !== document.body) {
+      document.activeElement.blur();
+    }
+    
+    // Reset any custom data attributes that might be stale
+    const elementsWithData = document.querySelectorAll('[data-selected], [data-answered], [data-chosen]');
+    elementsWithData.forEach(element => {
+      try {
+        element.removeAttribute('data-selected');
+        element.removeAttribute('data-answered');
+        element.removeAttribute('data-chosen');
+      } catch (err) {
+        // Ignore errors
+      }
+    });
+    
+    // Force garbage collection hint
+    if (window.gc) {
+      try {
+        window.gc();
+      } catch (err) {
+        // Ignore if gc is not available
+      }
+    }
+    
+    console.log('[Content] Stale states cleared');
+  };
+
   // Extract answer option from AI response
   const extractAnswerOption = (response) => {
     if (!response) return null;
@@ -286,6 +360,10 @@
     
     console.log(`[Content] Looking for option ${answerLetter} to select`);
     
+    // Aggressive DOM refresh and state clearing
+    await forceDOMRefresh();
+    await clearStaleStates();
+    
     // Check if this is a checkbox-style answer (number, position word, etc.)
     const isCheckboxStyle = !/^[A-Z]$/i.test(answerLetter);
     
@@ -301,19 +379,47 @@
   const selectLetterOption = (answerLetter) => {
     console.log(`[Content] Selecting letter option: ${answerLetter}`);
     
+    // Force multiple DOM refresh cycles to ensure latest elements
+    for (let i = 0; i < 3; i++) {
+      document.body.offsetHeight; // Trigger reflow
+      // Small delay to allow DOM to update
+      const start = Date.now();
+      while (Date.now() - start < 50) {
+        // Wait 50ms
+      }
+    }
+    
     // First, try to find any input elements (radio/checkbox) that might be related
     const allInputs = document.querySelectorAll('input[type="radio"], input[type="checkbox"]');
     console.log(`[Content] Found ${allInputs.length} input elements`);
     
-    // Try different selectors to find MCQ options
+    // Enhanced selectors for different website types
     const selectors = [
-      `input[type="radio"][value*="${answerLetter}"]`,
-      `input[type="checkbox"][value*="${answerLetter}"]`,
-      `[data-answer*="${answerLetter}"]`,
+      // Standard HTML patterns
+      `input[type="radio"][value*="${answerLetter}" i]`,
+      `input[type="checkbox"][value*="${answerLetter}" i]`,
+      `[data-answer*="${answerLetter}" i]`,
       `.option-${answerLetter.toLowerCase()}`,
       `*[data-option="${answerLetter}"]`,
-      `input[name*="answer"][value*="${answerLetter}"]`,
-      `input[name*="choice"][value*="${answerLetter}"]`
+      `input[name*="answer"][value*="${answerLetter}" i]`,
+      `input[name*="choice"][value*="${answerLetter}" i]`,
+      
+      // Common educational platform patterns
+      `input[id*="${answerLetter.toLowerCase()}"]`,
+      `input[class*="${answerLetter.toLowerCase()}"]`,
+      `*[id*="option"][id*="${answerLetter.toLowerCase()}" i]`,
+      `*[class*="option"][class*="${answerLetter.toLowerCase()}" i]`,
+      
+      // Generic patterns
+      `input[value*="${answerLetter}" i]`,
+      `*[data-choice*="${answerLetter}" i]`,
+      `*[data-answer*="${answerLetter}" i]`,
+      
+      // Framework-specific patterns (React, Vue, etc.)
+      `[data-testid*="${answerLetter.toLowerCase()}"]`,
+      `[data-test*="${answerLetter.toLowerCase()}"]`,
+      `[aria-label*="${answerLetter}" i]`,
+      `[title*="${answerLetter}" i]`
     ];
     
     for (const selector of selectors) {
@@ -335,65 +441,152 @@
       }
     }
     
-    // Try to find labels containing the answer letter
-    const labels = document.querySelectorAll('label');
-    console.log(`[Content] Found ${labels.length} label elements`);
+    // Enhanced label detection for different website types
+    const labelSelectors = [
+      'label',
+      '.label',
+      '.option-label',
+      '.choice-label',
+      '.answer-label',
+      '[role="label"]',
+      '[role="option"]',
+      '.option',
+      '.choice',
+      '.answer-option',
+      'div[class*="option"]',
+      'span[class*="option"]',
+      'li[class*="option"]',
+      'td[class*="option"]'
+    ];
     
-    for (const label of labels) {
-      const labelText = label.textContent.trim();
-      if (labelText.startsWith(answerLetter + ')') || 
-          labelText.startsWith(answerLetter + '.') ||
-          labelText.startsWith(answerLetter + ' ') ||
-          labelText.includes('Option ' + answerLetter) ||
-          labelText.match(new RegExp(`^${answerLetter}[).\\s]`, 'i'))) {
-        try {
-          // Check if label is visible
-          const rect = label.getBoundingClientRect();
-          if (rect.width > 0 && rect.height > 0) {
-            label.click();
-            console.log(`[Content] Successfully clicked label containing option ${answerLetter}: ${labelText.substring(0, 50)}...`);
-            return true;
-          } else {
-            console.log(`[Content] Label found but not visible: ${labelText.substring(0, 50)}...`);
+    for (const selector of labelSelectors) {
+      try {
+        const elements = document.querySelectorAll(selector);
+        console.log(`[Content] Checking ${elements.length} ${selector} elements`);
+        
+        for (const element of elements) {
+          const text = element.textContent.trim();
+          const elementVisible = element.getBoundingClientRect().width > 0 && element.getBoundingClientRect().height > 0;
+          
+          if (!elementVisible) continue;
+          
+          // Enhanced text matching patterns
+          const patterns = [
+            new RegExp(`^${answerLetter}[).\s]`, 'i'),           // A), A., A
+            new RegExp(`^Option\s+${answerLetter}`, 'i'),          // Option A
+            new RegExp(`^Choice\s+${answerLetter}`, 'i'),          // Choice A
+            new RegExp(`^Answer\s+${answerLetter}`, 'i'),          // Answer A
+            new RegExp(`\\(${answerLetter}[).\s]`, 'i'),          // (A), (A., (A
+            new RegExp(`\\[${answerLetter}[].\s]`, 'i'),          // [A], [A., [A
+            new RegExp(`^${answerLetter}\\s+[).:]`, 'i'),        // A), A., A:
+            new RegExp(`\\b${answerLetter}\\b`, 'i')              // Standalone A
+          ];
+          
+          for (const pattern of patterns) {
+            if (pattern.test(text)) {
+              try {
+                element.click();
+                console.log(`[Content] Successfully clicked ${selector} with pattern "${pattern}": ${text.substring(0, 50)}...`);
+                return true;
+              } catch (err) {
+                console.log(`[Content] Failed to click ${selector}:`, err);
+              }
+            }
           }
-        } catch (err) {
-          console.log(`[Content] Failed to click label:`, err);
         }
+      } catch (err) {
+        console.log(`[Content] Selector ${selector} failed:`, err);
       }
     }
     
-    // Try to find any clickable element with the answer letter
-    const clickableElements = document.querySelectorAll('button, div[onclick], span[onclick], [role="button"], [role="option"]');
-    console.log(`[Content] Found ${clickableElements.length} clickable elements`);
+    // Enhanced clickable element detection
+    const clickableSelectors = [
+      'button',
+      'div[onclick]',
+      'span[onclick]',
+      '[role="button"]',
+      '[role="option"]',
+      '[role="radio"]',
+      '[role="checkbox"]',
+      '.btn',
+      '.button',
+      '.choice-btn',
+      '.option-btn',
+      'a[href*="#"]',
+      '.clickable',
+      '[tabindex="0"]',
+      '.selectable',
+      '.answer-choice'
+    ];
     
-    for (const element of clickableElements) {
-      const text = element.textContent.trim();
-      if (text === answerLetter || text === answerLetter + ')' || text === answerLetter + '.' || text.startsWith(answerLetter + ' ')) {
-        try {
-          const rect = element.getBoundingClientRect();
-          if (rect.width > 0 && rect.height > 0) {
-            element.click();
-            console.log(`[Content] Successfully clicked clickable element with text: ${text}`);
-            return true;
+    for (const selector of clickableSelectors) {
+      try {
+        const elements = document.querySelectorAll(selector);
+        console.log(`[Content] Checking ${elements.length} ${selector} elements`);
+        
+        for (const element of elements) {
+          const text = element.textContent.trim();
+          const elementVisible = element.getBoundingClientRect().width > 0 && element.getBoundingClientRect().height > 0;
+          
+          if (!elementVisible) continue;
+          
+          // Enhanced text matching for clickable elements
+          if (text === answerLetter || 
+              text === answerLetter + ')' || 
+              text === answerLetter + '.' || 
+              text.startsWith(answerLetter + ' ') ||
+              text.startsWith(answerLetter + ')') ||
+              text.startsWith(answerLetter + '.') ||
+              text.match(new RegExp(`^${answerLetter}[).\s]`, 'i')) ||
+              text.match(new RegExp(`\\b${answerLetter}\\b`, 'i'))) {
+            try {
+              element.click();
+              console.log(`[Content] Successfully clicked ${selector} with text: ${text}`);
+              return true;
+            } catch (err) {
+              console.log(`[Content] Failed to click ${selector}:`, err);
+            }
           }
-        } catch (err) {
-          console.log(`[Content] Failed to click clickable element:`, err);
         }
+      } catch (err) {
+        console.log(`[Content] Selector ${selector} failed:`, err);
       }
     }
     
-    // Last resort: try any element with the answer letter
+    // Enhanced fallback: try any element with the answer letter
     const allElements = document.querySelectorAll('*');
+    console.log(`[Content] Checking ${allElements.length} total elements as fallback`);
+    
     for (const element of allElements) {
       if (element.children.length === 0) { // Only leaf nodes
         const text = element.textContent.trim();
-        if (text === answerLetter || text === answerLetter + ')' || text === answerLetter + '.') {
+        const elementVisible = element.getBoundingClientRect().width > 0 && element.getBoundingClientRect().height > 0;
+        
+        if (!elementVisible) continue;
+        
+        // Enhanced text matching for any element
+        if (text === answerLetter || 
+            text === answerLetter + ')' || 
+            text === answerLetter + '.' || 
+            text.match(new RegExp(`^${answerLetter}[).\s]`, 'i')) ||
+            text.match(new RegExp(`\\b${answerLetter}\\b`, 'i'))) {
           try {
-            const rect = element.getBoundingClientRect();
-            if (rect.width > 0 && rect.height > 0) {
-              element.click();
-              console.log(`[Content] Successfully clicked element with text: ${text}`);
-              return true;
+            // Try multiple click methods
+            const clickMethods = [
+              () => element.click(),
+              () => { const event = new MouseEvent('click', { bubbles: true }); element.dispatchEvent(event); },
+              () => { const event = new Event('click', { bubbles: true }); element.dispatchEvent(event); }
+            ];
+            
+            for (const clickMethod of clickMethods) {
+              try {
+                clickMethod();
+                console.log(`[Content] Successfully clicked element with text: ${text}`);
+                return true;
+              } catch (clickErr) {
+                // Try next click method
+                continue;
+              }
             }
           } catch (err) {
             // Continue trying
@@ -410,6 +603,15 @@
   // Handle checkbox-style options (numbers, positions, true/false)
   const selectCheckboxOption = async (answerValue) => {
     console.log(`[Content] Selecting checkbox-style option: ${answerValue}`);
+    
+    // Aggressive DOM refresh
+    for (let i = 0; i < 3; i++) {
+      document.body.offsetHeight; // Trigger reflow
+      const start = Date.now();
+      while (Date.now() - start < 50) {
+        // Wait 50ms
+      }
+    }
     
     // Check if this is a fill-in-the-blank answer (word/phrase)
     // But allow numbers (like "3") to pass through for checkbox selection
@@ -448,14 +650,79 @@
     let checkboxes = document.querySelectorAll('input[type="checkbox"], input[type="radio"]');
     console.log(`[Content] Found ${checkboxes.length} checkboxes/radio buttons total`);
     
+    // Filter out already checked/selected elements to avoid conflicts
+    checkboxes = Array.from(checkboxes).filter(checkbox => !checkbox.checked);
+    console.log(`[Content] Filtered to ${checkboxes.length} unchecked checkboxes/radio buttons`);
+    
     // Try to find checkboxes associated with the current question
     // Look for checkboxes in the same container or nearby elements
-    const questionContainer = document.querySelector('.question, .quiz-question, .mcq-question, [class*="question"]');
+    const questionContainerSelectors = [
+      // Standard question containers
+      '.question',
+      '.quiz-question', 
+      '.mcq-question',
+      '[class*="question"]',
+      
+      // Educational platform specific containers
+      '.quiz-container',
+      '.question-container',
+      '.test-question',
+      '.exam-question',
+      '.assessment-question',
+      '.question-item',
+      '.question-block',
+      '.question-wrapper',
+      '.question-box',
+      '.question-card',
+      
+      // Common educational platform patterns
+      '.problem',
+      '.exercise',
+      '.task',
+      '.item',
+      '.choice-container',
+      '.option-container',
+      '.answer-container',
+      '.response-container',
+      
+      // Generic patterns
+      '[class*="quiz"]',
+      '[class*="test"]',
+      '[class*="exam"]',
+      '[class*="assessment"]',
+      '[class*="problem"]',
+      '[class*="exercise"]',
+      '[class*="task"]',
+      
+      // Framework specific patterns
+      '[data-question]',
+      '[data-quiz]',
+      '[data-test]',
+      '[data-item]',
+      '[data-problem]',
+      
+      // Role-based patterns
+      '[role="group"]',
+      '[role="radiogroup"]',
+      '[role="list"]',
+      '[role="region"]'
+    ];
+    
+    let questionContainer = null;
+    for (const selector of questionContainerSelectors) {
+      questionContainer = document.querySelector(selector);
+      if (questionContainer) {
+        console.log(`[Content] Found question container: ${selector}`);
+        break;
+      }
+    }
+    
     if (questionContainer) {
-      const nearbyCheckboxes = questionContainer.querySelectorAll('input[type="checkbox"], input[type="radio"]');
+      const nearbyCheckboxes = Array.from(questionContainer.querySelectorAll('input[type="checkbox"], input[type="radio"]'))
+        .filter(checkbox => !checkbox.checked);
       if (nearbyCheckboxes.length > 0) {
         checkboxes = nearbyCheckboxes;
-        console.log(`[Content] Found ${checkboxes.length} checkboxes near question container`);
+        console.log(`[Content] Found ${checkboxes.length} unchecked checkboxes near question container`);
       }
     }
     
@@ -465,13 +732,13 @@
       const relevantCheckboxes = Array.from(checkboxes).filter(checkbox => {
         const rect = checkbox.getBoundingClientRect();
         const viewportHeight = window.innerHeight;
-        // Only consider checkboxes in the current viewport
-        return rect.top >= 0 && rect.top <= viewportHeight;
+        // Only consider checkboxes in the current viewport and not already checked
+        return rect.top >= 0 && rect.top <= viewportHeight && !checkbox.checked;
       });
       
       if (relevantCheckboxes.length > 0 && relevantCheckboxes.length <= 10) {
         checkboxes = relevantCheckboxes;
-        console.log(`[Content] Filtered to ${checkboxes.length} relevant checkboxes in viewport`);
+        console.log(`[Content] Filtered to ${checkboxes.length} relevant unchecked checkboxes in viewport`);
       }
     }
     
@@ -479,11 +746,20 @@
       // Select by position
       const targetCheckbox = checkboxes[targetPosition];
       try {
+        // Double-check that the checkbox is still valid and not already checked
         const rect = targetCheckbox.getBoundingClientRect();
-        if (rect.width > 0 && rect.height > 0) {
+        if (rect.width > 0 && rect.height > 0 && !targetCheckbox.checked) {
+          // Scroll into view if needed
+          if (rect.top < 0 || rect.top > window.innerHeight) {
+            targetCheckbox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            await new Promise(resolve => setTimeout(resolve, 300));
+          }
+          
           targetCheckbox.click();
           console.log(`[Content] Successfully clicked checkbox at position ${targetPosition + 1}`);
           return true;
+        } else {
+          console.log(`[Content] Checkbox at position ${targetPosition + 1} is already checked or not visible`);
         }
       } catch (err) {
         console.log(`[Content] Failed to click checkbox at position ${targetPosition + 1}:`, err);
@@ -496,7 +772,7 @@
         const label = checkbox.closest('label') || document.querySelector(`label[for="${checkbox.id}"]`);
         if (label) {
           const labelText = label.textContent.trim().toLowerCase();
-          if (labelText.includes(targetText)) {
+          if (labelText.includes(targetText) && !checkbox.checked) {
             try {
               const rect = checkbox.getBoundingClientRect();
               if (rect.width > 0 && rect.height > 0) {
@@ -542,7 +818,7 @@
             }
           }
           
-          if (checkbox) {
+          if (checkbox && !checkbox.checked) {
             foundOptions.push({ 
               element: element, 
               checkbox: checkbox, 
@@ -567,8 +843,9 @@
       if (targetPosition < uniqueOptions.length) {
         const targetOption = uniqueOptions[targetPosition];
         try {
+          // Double-check checkbox is still valid and not checked
           const rect = targetOption.checkbox.getBoundingClientRect();
-          if (rect.width > 0 && rect.height > 0) {
+          if (rect.width > 0 && rect.height > 0 && !targetOption.checkbox.checked) {
             // Scroll the checkbox into view if needed
             if (rect.top < 0 || rect.top > window.innerHeight) {
               targetOption.checkbox.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -579,6 +856,8 @@
             targetOption.checkbox.click();
             console.log(`[Content] Successfully clicked checkbox for option ${targetOption.number}: ${targetOption.optionText.substring(0, 30)}...`);
             return true;
+          } else {
+            console.log(`[Content] Checkbox for option ${targetOption.number} is already checked or not visible`);
           }
         } catch (err) {
           console.log(`[Content] Failed to click checkbox for option ${targetOption.number}:`, err);
@@ -756,22 +1035,37 @@
               
               // Try multiple times with delays for dynamic content
               let success = false;
-              for (let attempt = 0; attempt < 3; attempt++) {
-                success = selectMcqOption(answerLetter);
-                if (success) {
-                  console.info(`[Content] Successfully selected option ${answerLetter} on attempt ${attempt + 1}`);
-                  break;
+              let lastError = null;
+              
+              for (let attempt = 0; attempt < 5; attempt++) {
+                try {
+                  // Force DOM refresh before each attempt
+                  document.body.offsetHeight;
+                  
+                  success = selectMcqOption(answerLetter);
+                  if (success) {
+                    console.info(`[Content] Successfully selected option ${answerLetter} on attempt ${attempt + 1}`);
+                    break;
+                  }
+                } catch (err) {
+                  lastError = err;
+                  console.log(`[Content] Attempt ${attempt + 1} failed:`, err.message);
                 }
                 
-                // Wait before retry
-                if (attempt < 2) {
-                  await new Promise(resolve => setTimeout(resolve, 200));
-                  console.log(`[Content] Retrying option selection (attempt ${attempt + 2})`);
+                // Wait before retry with exponential backoff
+                if (attempt < 4) {
+                  const delay = Math.min(200 * Math.pow(1.5, attempt), 1000); // Max 1 second
+                  await new Promise(resolve => setTimeout(resolve, delay));
+                  console.log(`[Content] Retrying option selection (attempt ${attempt + 2}) after ${delay}ms`);
                 }
               }
               
               if (!success) {
-                console.warn(`[Content] Failed to select option ${answerLetter} after 3 attempts, copying to clipboard instead`);
+                console.warn(`[Content] Failed to select option ${answerLetter} after 5 attempts`);
+                if (lastError) {
+                  console.error(`[Content] Last error: ${lastError.message}`);
+                }
+                console.log(`[Content] Copying to clipboard as fallback`);
                 await navigator.clipboard.writeText(response.data);
               }
             } else {
@@ -840,7 +1134,7 @@
     const questions = [];
     const sensitivity = settings.questionDetectionSensitivity;
     
-    // Enhanced detection patterns based on sensitivity
+    // Enhanced detection patterns based on sensitivity and website types
     let patterns = [];
     if (sensitivity === "high") {
       patterns = [
@@ -848,34 +1142,52 @@
         /\b(what|which|who|when|where|why|how|select|choose|identify|determine)\b.*\?[\s\S]*?([A-D]\)|[A-D]\.|[A-D]\s|option\s*[A-D])/gi,
         // Questions with multiple choice indicators
         /\b(what|which|who|when|where|why|how|select|choose|identify)\b.*\?/gi,
-        // Multiple choice option patterns
+        // Multiple choice option patterns (enhanced)
         /\([A-D]\)/g,
         /\b[A-D]\)\s*/g,
         /\b[A-D]\.\s*/g,
         /\b[A-D]\s+/g,
         /option\s*[A-D]/gi,
         /\b(correct|answer|select)\s*[A-D]/gi,
-        // Common MCQ patterns
+        
+        // Educational platform specific patterns
         /\b(choose|select|pick)\s*the\s*(correct|right|best|appropriate)/gi,
         /\b(which\s*of\s*the\s*following|which\s*one|select\s*the\s*following)/gi,
-        // Numbered options with letters
+        /\b(select\s*all\s*that\s*apply|choose\s*all\s*that\s*apply)/gi,
+        
+        // Numbered options with letters (enhanced)
         /\d+\.\s*[A-D]\)/g,
         /\d+\.\s*[A-D]\./g,
-        // Checkbox and radio button patterns
+        /\d+\)\s*[A-D]\)/g,
+        /\d+\)\s*[A-D]\./g,
+        
+        // Checkbox and radio button patterns (enhanced)
         /\[\s*\]\s*/g,
         /\(\s*\)\s*/g,
         /☐\s*/g,
         /◯\s*/g,
-        // Unnumbered option patterns
+        /□\s*/g,
+        /○\s*/g,
+        
+        // Unnumbered option patterns (enhanced)
         /\b(first|second|third|fourth|fifth)\s+(option|choice)/gi,
         /\b(one|two|three|four|five)\s+(option|choice)/gi,
-        // True/False patterns
-        /\b(true|false|yes|no|correct|incorrect)\b/gi,
-        // Fill in the blank patterns
+        
+        // True/False patterns (enhanced)
+        /\b(true|false|yes|no|correct|incorrect|right|wrong)/gi,
+        
+        // Fill in the blank patterns (enhanced)
         /_{3,}/g,
         /\.{3,}/g,
-        // Select all that apply patterns
-        /\b(select\s+all\s+that\s+apply|choose\s+all\s+that\s+apply)/gi
+        /\b(blank|fill|complete)\s*the\s*blank/gi,
+        
+        // Common educational platform indicators
+        /\b(question|quiz|test|exam|assessment)\b/gi,
+        /\b(multiple\s*choice|mcq|choice\s*question)\b/gi,
+        
+        // Interactive element patterns
+        /\b(click|select|tap|choose)\s*the\s*answer/gi,
+        /\b(answer\s*option|response\s*option)\b/gi
       ];
     } else if (sensitivity === "medium") {
       patterns = [
@@ -1210,6 +1522,57 @@
       throw new Error('Extension context not available');
     }
     
+    // Aggressive DOM refresh and state clearing
+    await forceDOMRefresh();
+    await clearStaleStates();
+    
+    // Additional state clearing in question area
+    const questionContainerSelectors = [
+      '.question', '.quiz-question', '.mcq-question', '[class*="question"]',
+      '.quiz-container', '.question-container', '.test-question', '.exam-question',
+      '.assessment-question', '.question-item', '.question-block', '.question-wrapper',
+      '.question-box', '.question-card', '.problem', '.exercise', '.task', '.item',
+      '.choice-container', '.option-container', '.answer-container', '.response-container',
+      '[class*="quiz"]', '[class*="test"]', '[class*="exam"]', '[class*="assessment"]',
+      '[class*="problem"]', '[class*="exercise"]', '[class*="task"]',
+      '[data-question]', '[data-quiz]', '[data-test]', '[data-item]', '[data-problem]',
+      '[role="group"]', '[role="radiogroup"]', '[role="list"]', '[role="region"]'
+    ];
+    
+    let questionArea = question.element;
+    for (const selector of questionContainerSelectors) {
+      const container = question.element.closest(selector);
+      if (container) {
+        questionArea = container;
+        console.log(`[Content] Found question area: ${selector}`);
+        break;
+      }
+    }
+    
+    // Multiple passes to clear selections in question area
+    for (let pass = 0; pass < 3; pass++) {
+      const existingSelections = questionArea.querySelectorAll('input[type="radio"]:checked, input[type="checkbox"]:checked');
+      if (existingSelections.length > 0) {
+        console.log(`[Content] Pass ${pass + 1}: Clearing ${existingSelections.length} existing selections in question area`);
+        existingSelections.forEach(input => {
+          try {
+            input.checked = false;
+            // Trigger multiple events to ensure UI updates
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.dispatchEvent(new Event('click', { bubbles: true }));
+          } catch (err) {
+            console.log('[Content] Failed to clear existing selection:', err);
+          }
+        });
+        
+        // Small delay between passes
+        await new Promise(resolve => setTimeout(resolve, 50));
+      } else {
+        break; // No more selections to clear
+      }
+    }
+    
     // Add delay if configured
     if (settings.autoSolveDelay > 0) {
       await new Promise(resolve => setTimeout(resolve, settings.autoSolveDelay * 1000));
@@ -1237,12 +1600,43 @@
           // Extract answer option and click it
           const answerLetter = extractAnswerOption(response.data);
           if (answerLetter) {
-            const success = await selectMcqOption(answerLetter);
+            console.log(`[Content] Extracted answer: ${answerLetter}, attempting to select...`);
+            
+            // Try multiple times with delays for dynamic content
+            let success = false;
+            let lastError = null;
+            
+            for (let attempt = 0; attempt < 5; attempt++) {
+              try {
+                // Force DOM refresh before each attempt
+                document.body.offsetHeight;
+                
+                success = selectMcqOption(answerLetter);
+                if (success) {
+                  console.info(`[Content] Successfully selected option ${answerLetter} on attempt ${attempt + 1}`);
+                  break;
+                }
+              } catch (err) {
+                lastError = err;
+                console.log(`[Content] Attempt ${attempt + 1} failed:`, err.message);
+              }
+              
+              // Wait before retry with exponential backoff
+              if (attempt < 4) {
+                const delay = Math.min(200 * Math.pow(1.5, attempt), 1000); // Max 1 second
+                await new Promise(resolve => setTimeout(resolve, delay));
+                console.log(`[Content] Retrying option selection (attempt ${attempt + 2}) after ${delay}ms`);
+              }
+            }
+            
             if (success) {
               console.info(`[Content] Successfully selected option ${answerLetter}`);
               resolve(answerLetter);
             } else {
-              console.warn(`[Content] Failed to select option ${answerLetter}`);
+              console.warn(`[Content] Failed to select option ${answerLetter} after 5 attempts`);
+              if (lastError) {
+                console.error(`[Content] Last error: ${lastError.message}`);
+              }
               // Try to copy to clipboard as fallback
               try {
                 await navigator.clipboard.writeText(response.data);
@@ -1340,11 +1734,13 @@
 
   // Set up observer to detect when questions change
   const setupQuestionObserver = () => {
-    console.log('[Content] Setting up question content observer');
+    console.log('[Content] Setting up aggressive question content observer');
     
     // Create a MutationObserver to watch for content changes
     const observer = new MutationObserver((mutations) => {
       let hasSignificantChange = false;
+      let hasQuestionChange = false;
+      let hasInputChange = false;
       
       for (const mutation of mutations) {
         if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
@@ -1352,9 +1748,26 @@
           for (const node of mutation.addedNodes) {
             if (node.nodeType === Node.ELEMENT_NODE) {
               const text = node.textContent || '';
-              if (text.includes('?') || text.match(/\d+\./) || text.includes('option')) {
+              if (text.includes('?') || text.match(/\d+\./) || text.includes('option') || text.match(/[A-D]\)/)) {
                 hasSignificantChange = true;
+                hasQuestionChange = true;
+                console.log('[Content] Detected new question content:', text.substring(0, 100));
                 break;
+              }
+              
+              // Also check for new input elements (checkboxes/radio buttons)
+              const inputs = node.querySelectorAll ? node.querySelectorAll('input[type="checkbox"], input[type="radio"]') : [];
+              if (inputs.length > 0) {
+                hasSignificantChange = true;
+                hasInputChange = true;
+                console.log(`[Content] Detected ${inputs.length} new input elements`);
+              }
+              
+              // Check for new button-like elements that might be options
+              const buttons = node.querySelectorAll ? node.querySelectorAll('button, [role="button"], [role="option"]') : [];
+              if (buttons.length > 0) {
+                hasSignificantChange = true;
+                console.log(`[Content] Detected ${buttons.length} new button elements`);
               }
             }
           }
@@ -1362,29 +1775,68 @@
         
         if (mutation.type === 'characterData' && mutation.target.parentNode) {
           const text = mutation.target.textContent || '';
-          if (text.includes('?') || text.match(/\d+\./)) {
+          if (text.includes('?') || text.match(/\d+\./) || text.match(/[A-D]\)/)) {
             hasSignificantChange = true;
+            console.log('[Content] Detected text change in question:', text.substring(0, 100));
+          }
+        }
+        
+        // Check for attribute changes that might indicate question state changes
+        if (mutation.type === 'attributes') {
+          const element = mutation.target;
+          if (element.classList.contains('question') || element.classList.contains('quiz') || element.textContent.includes('?')) {
+            hasQuestionChange = true;
+            console.log('[Content] Detected question attribute change:', mutation.attributeName);
+          }
+          
+          // Check for changes in input elements
+          if (element.tagName === 'INPUT' && (element.type === 'radio' || element.type === 'checkbox')) {
+            hasInputChange = true;
+            console.log('[Content] Detected input element change');
           }
         }
       }
       
-      if (hasSignificantChange) {
-        console.log('[Content] Detected question content change, clearing cache');
-        // Clear any cached question data to force re-detection
-        setTimeout(() => {
-          console.log('[Content] Question content updated, ready for new detection');
-        }, 100);
+      if (hasSignificantChange || hasQuestionChange || hasInputChange) {
+        console.log('[Content] Detected significant content change, triggering aggressive refresh');
+        
+        // Force immediate DOM refresh and state clearing
+        setTimeout(async () => {
+          console.log('[Content] Performing aggressive refresh due to content change');
+          await forceDOMRefresh();
+          await clearStaleStates();
+          console.log('[Content] Aggressive refresh completed, ready for new detection');
+          
+          // Additional auto-clear if this was a question change
+          if (hasQuestionChange) {
+            const allChecked = document.querySelectorAll('input[type="radio"]:checked, input[type="checkbox"]:checked');
+            if (allChecked.length > 0) {
+              console.log(`[Content] Auto-clearing ${allChecked.length} existing selections due to question change`);
+              allChecked.forEach(input => {
+                try {
+                  input.checked = false;
+                  input.dispatchEvent(new Event('change', { bubbles: true }));
+                  input.dispatchEvent(new Event('input', { bubbles: true }));
+                } catch (err) {
+                  // Ignore errors during auto-clear
+                }
+              });
+            }
+          }
+        }, 50); // Shorter delay for more responsive detection
       }
     });
     
-    // Start observing the entire document
+    // Start observing the entire document with comprehensive options
     observer.observe(document.body, {
       childList: true,
       subtree: true,
-      characterData: true
+      characterData: true,
+      attributes: true,
+      attributeFilter: ['class', 'style', 'disabled', 'checked', 'selected', 'data-*']
     });
     
-    console.log('[Content] Question observer started');
+    console.log('[Content] Aggressive question observer started with comprehensive monitoring');
   };
 
   // Listen for settings changes
@@ -1442,6 +1894,297 @@
     }
     
     return questions;
+  };
+
+  // Manual refresh function for users to call when auto-solving fails
+  window.forceRefreshAndClear = async () => {
+    console.log("=".repeat(80));
+    console.log("🔄 [Content] MANUAL FORCE REFRESH AND CLEAR");
+    console.log("=".repeat(80));
+    
+    try {
+      console.log('[Content] Starting manual force refresh...');
+      
+      // Perform aggressive refresh and state clearing
+      await forceDOMRefresh();
+      await clearStaleStates();
+      
+      // Additional clearing of any remaining selections
+      const allInputs = document.querySelectorAll('input[type="radio"], input[type="checkbox"]');
+      console.log(`[Content] Found ${allInputs.length} input elements to check`);
+      
+      let clearedCount = 0;
+      allInputs.forEach(input => {
+        if (input.checked) {
+          try {
+            input.checked = false;
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.dispatchEvent(new Event('click', { bubbles: true }));
+            clearedCount++;
+          } catch (err) {
+            console.log('[Content] Failed to clear input:', err);
+          }
+        }
+      });
+      
+      console.log(`[Content] Manually cleared ${clearedCount} selections`);
+      
+      // Clear any focus
+      if (document.activeElement && document.activeElement !== document.body) {
+        document.activeElement.blur();
+      }
+      
+      // Test question detection after refresh
+      const questions = detectMcqQuestions();
+      console.log(`[Content] After refresh: detected ${questions.length} questions`);
+      
+      console.log('\n✅ [Content] MANUAL REFRESH COMPLETED');
+      console.log('💡 [Content] Try auto-solving again now');
+      console.log('💡 [Content] If still failing, run testWebsiteCompatibility() for analysis');
+      
+    } catch (error) {
+      console.error('❌ [Content] MANUAL REFRESH FAILED:', error);
+    }
+    
+    console.log("=".repeat(80));
+  };
+
+  // Test function for website compatibility analysis
+  window.testWebsiteCompatibility = async () => {
+    console.log("=".repeat(80));
+    console.log("🌐 [Content] WEBSITE COMPATIBILITY ANALYSIS");
+    console.log("=".repeat(80));
+    
+    try {
+      // Test 1: Basic input detection
+      console.log('\n🔍 [Content] TEST 1: Basic Input Detection');
+      const allInputs = document.querySelectorAll('input[type="radio"], input[type="checkbox"]');
+      console.log(`[Content] Found ${allInputs.length} radio/checkbox inputs`);
+      
+      const allButtons = document.querySelectorAll('button, [role="button"], [role="option"]');
+      console.log(`[Content] Found ${allButtons.length} button-like elements`);
+      
+      const allLabels = document.querySelectorAll('label, [role="label"]');
+      console.log(`[Content] Found ${allLabels.length} label-like elements`);
+      
+      // Test 2: Question container detection
+      console.log('\n📦 [Content] TEST 2: Question Container Detection');
+      const containerSelectors = [
+        '.question', '.quiz-question', '.mcq-question', '[class*="question"]',
+        '.quiz-container', '.question-container', '.test-question', '.exam-question',
+        '.assessment-question', '.question-item', '.question-block', '.question-wrapper',
+        '.question-box', '.question-card', '.problem', '.exercise', '.task', '.item',
+        '.choice-container', '.option-container', '.answer-container', '.response-container',
+        '[class*="quiz"]', '[class*="test"]', '[class*="exam"]', '[class*="assessment"]',
+        '[class*="problem"]', '[class*="exercise"]', '[class*="task"]',
+        '[data-question]', '[data-quiz]', '[data-test]', '[data-item]', '[data-problem]',
+        '[role="group"]', '[role="radiogroup"]', '[role="list"]', '[role="region"]'
+      ];
+      
+      let foundContainers = [];
+      for (const selector of containerSelectors) {
+        const containers = document.querySelectorAll(selector);
+        if (containers.length > 0) {
+          foundContainers.push({ selector: selector, count: containers.length });
+          console.log(`[Content] Found ${containers.length} containers with selector: ${selector}`);
+        }
+      }
+      
+      // Test 3: Option pattern detection
+      console.log('\n🎯 [Content] TEST 3: Option Pattern Detection');
+      const optionPatterns = [
+        /\([A-D]\)/g,
+        /\b[A-D]\)\s*/g,
+        /\b[A-D]\.\s*/g,
+        /\b[A-D]\s+/g,
+        /option\s*[A-D]/gi,
+        /\[\s*\]\s*/g,
+        /\(\s*\)\s*/g,
+        /☐\s*/g,
+        /◯\s*/g
+      ];
+      
+      const bodyText = document.body.textContent || '';
+      optionPatterns.forEach((pattern, index) => {
+        const matches = bodyText.match(pattern);
+        if (matches && matches.length > 0) {
+          console.log(`[Content] Pattern ${index + 1} found ${matches.length} matches: ${pattern}`);
+        }
+      });
+      
+      // Test 4: Question detection
+      console.log('\n❓ [Content] TEST 4: Question Detection');
+      const questions = detectMcqQuestions();
+      console.log(`[Content] Detected ${questions.length} questions`);
+      
+      if (questions.length > 0) {
+        questions.slice(0, 3).forEach((q, index) => {
+          console.log(`[Content] Question ${index + 1}: "${q.text.substring(0, 100)}..." (score: ${q.score})`);
+        });
+      }
+      
+      // Test 5: Selection simulation
+      console.log('\n🖱️ [Content] TEST 5: Selection Simulation');
+      const testAnswers = ['A', 'B', 'C', 'D'];
+      let selectionResults = [];
+      
+      for (const answer of testAnswers) {
+        const success = selectMcqOption(answer);
+        selectionResults.push({ answer: answer, success: success });
+        console.log(`[Content] Selection test for "${answer}": ${success ? 'SUCCESS' : 'FAILED'}`);
+        
+        // Small delay between tests
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      
+      // Test 6: Website analysis
+      console.log('\n📊 [Content] TEST 6: Website Analysis');
+      const url = window.location.href;
+      const domain = window.location.hostname;
+      console.log(`[Content] Current URL: ${url}`);
+      console.log(`[Content] Domain: ${domain}`);
+      
+      // Check for common educational platforms
+      const platformPatterns = [
+        /coursera/i,
+        /udemy/i,
+        /edx/i,
+        /khan/i,
+        /quizlet/i,
+        /study/i,
+        /learn/i,
+        /education/i,
+        /school/i,
+        /university/i,
+        /college/i,
+        /academy/i,
+        /training/i,
+        /course/i
+      ];
+      
+      let detectedPlatform = null;
+      for (const pattern of platformPatterns) {
+        if (pattern.test(url) || pattern.test(domain) || pattern.test(document.title)) {
+          detectedPlatform = pattern.source.replace(/\/i$/, '');
+          break;
+        }
+      }
+      
+      if (detectedPlatform) {
+        console.log(`[Content] Detected educational platform: ${detectedPlatform}`);
+      } else {
+        console.log('[Content] No specific educational platform detected');
+      }
+      
+      // Summary
+      console.log('\n📋 [Content] COMPATIBILITY SUMMARY:');
+      console.log(`[Content] • Input elements: ${allInputs.length}`);
+      console.log(`[Content] • Button elements: ${allButtons.length}`);
+      console.log(`[Content] • Label elements: ${allLabels.length}`);
+      console.log(`[Content] • Question containers: ${foundContainers.length}`);
+      console.log(`[Content] • Detected questions: ${questions.length}`);
+      console.log(`[Content] • Successful selections: ${selectionResults.filter(r => r.success).length}/${selectionResults.length}`);
+      
+      // Recommendations
+      console.log('\n💡 [Content] RECOMMENDATIONS:');
+      if (allInputs.length === 0) {
+        console.log('[Content] • No radio/checkbox inputs found - this site may use custom click handlers');
+      }
+      if (questions.length === 0) {
+        console.log('[Content] • No questions detected - try increasing detection sensitivity');
+      }
+      if (selectionResults.filter(r => r.success).length === 0) {
+        console.log('[Content] • No successful selections - this site may need custom selectors');
+      }
+      if (foundContainers.length === 0) {
+        console.log('[Content] • No question containers found - site may use non-standard structure');
+      }
+      
+      console.log('\n✅ [Content] WEBSITE COMPATIBILITY ANALYSIS COMPLETED');
+      
+    } catch (error) {
+      console.error('❌ [Content] COMPATIBILITY ANALYSIS FAILED:', error);
+    }
+    
+    console.log("=".repeat(80));
+  };
+
+  // Test function for debugging auto-solving issues
+  window.testAutoSolvingSequence = async () => {
+    console.log("=".repeat(80));
+    console.log("🧪 [Content] TESTING AUTO-SOLVING SEQUENCE");
+    console.log("=".repeat(80));
+    
+    try {
+      // Test 1: Question detection
+      console.log('\n🔍 [Content] TEST 1: Question Detection');
+      const questions = detectMcqQuestions();
+      console.log(`[Content] Found ${questions.length} questions`);
+      
+      if (questions.length === 0) {
+        console.log('❌ [Content] No questions found - cannot proceed with test');
+        return;
+      }
+      
+      // Test 2: Best question selection
+      console.log('\n🎯 [Content] TEST 2: Best Question Selection');
+      const bestQuestion = findBestQuestion();
+      if (bestQuestion) {
+        console.log(`✅ [Content] Best question selected: "${bestQuestion.text.substring(0, 100)}..."`);
+      } else {
+        console.log('❌ [Content] No best question found');
+        return;
+      }
+      
+      // Test 3: DOM element freshness
+      console.log('\n🔄 [Content] TEST 3: DOM Element Freshness');
+      const checkboxesBefore = document.querySelectorAll('input[type="checkbox"], input[type="radio"]');
+      console.log(`[Content] Found ${checkboxesBefore.length} input elements before refresh`);
+      
+      // Force DOM refresh
+      document.body.offsetHeight;
+      
+      const checkboxesAfter = document.querySelectorAll('input[type="checkbox"], input[type="radio"]');
+      console.log(`[Content] Found ${checkboxesAfter.length} input elements after refresh`);
+      
+      // Test 4: Selection state clearing
+      console.log('\n🧹 [Content] TEST 4: Selection State Clearing');
+      const checkedBefore = document.querySelectorAll('input[type="radio"]:checked, input[type="checkbox"]:checked');
+      console.log(`[Content] Found ${checkedBefore.length} checked elements before clearing`);
+      
+      if (checkedBefore.length > 0) {
+        checkedBefore.forEach(input => {
+          input.checked = false;
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+        
+        const checkedAfter = document.querySelectorAll('input[type="radio"]:checked, input[type="checkbox"]:checked');
+        console.log(`[Content] Found ${checkedAfter.length} checked elements after clearing`);
+      }
+      
+      // Test 5: Option selection simulation
+      console.log('\n🎯 [Content] TEST 5: Option Selection Simulation');
+      const testAnswer = "A"; // Test with letter A
+      console.log(`[Content] Testing selection of option "${testAnswer}"`);
+      
+      const selectionSuccess = selectMcqOption(testAnswer);
+      console.log(`[Content] Selection test result: ${selectionSuccess ? 'SUCCESS' : 'FAILED'}`);
+      
+      // Test 6: Observer functionality
+      console.log('\n👁️ [Content] TEST 6: Observer Functionality');
+      console.log('[Content] MutationObserver should be active and monitoring for changes');
+      console.log('[Content] Try changing questions on the page to test observer responsiveness');
+      
+      console.log('\n✅ [Content] AUTO-SOLVING TEST COMPLETED');
+      console.log('💡 [Content] If all tests pass, the auto-solving should work for subsequent questions');
+      console.log('💡 [Content] Check console logs for detailed information about each test');
+      
+    } catch (error) {
+      console.error('❌ [Content] AUTO-SOLVING TEST FAILED:', error);
+    }
+    
+    console.log("=".repeat(80));
   };
 
   // Test function for solving current question
